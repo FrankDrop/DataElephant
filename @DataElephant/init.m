@@ -27,6 +27,7 @@ function obj = init(obj,varargin)
     p.addParameter('hostname',         []);
     p.addParameter('submittohost',     'yes');
     
+%     p.addParameter('providexy',        'no');
     p.addParameter('savetotemp',       'yes');
     p.addParameter('savememory',       'yes');
     p.addParameter('addfinalstep',     'yes');
@@ -94,6 +95,8 @@ function obj = init(obj,varargin)
     obj.flock           = strcmp(z.flock,               'yes');
     obj.flockverbose    = strcmp(z.flockverbose,        'yes');
     obj.submitToHost    = strcmp(z.submittohost,        'yes');
+%     obj.providexy       = strcmp(z.providexy,           'yes');
+    
     
     obj.savetotemp      = strcmp(z.savetotemp,          'yes');
     obj.savememory      = strcmp(z.savememory,          'yes');

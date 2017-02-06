@@ -10,7 +10,48 @@ function [r,id_cum] = get(obj,name,varargin)
     end
     
     ccc = onCleanup(@()cleanexit(obj,'get'));
-    updateTree(obj,name);
+    
+    xy    = regexp(name,',','split');
+    if obj.process.xy
+        if length(xy) > 1
+            error('You cannot specify multiple results for this process, because it will automatically output x and y data.')
+        end
+        
+        name    = xy{1};
+        xname   = name;
+        yname   = name;
+        
+        updateTree(obj,name);
+    else
+        if length(xy) == 1
+            name    = xy{1};
+            updateTree(obj,name);
+            xname   = name;
+            yname   = name;
+        elseif length(xy) == 2
+            [b1,s1] = updateTree(obj,xy{1});
+            [b2,s2] = updateTree(obj,xy{2});
+            
+            if any([b1,s1,b2,s2] == -1)
+                error('Something went wrong');
+            end
+            
+            if (all([b1 b2] > 0) && b1 ~= b2)
+               error('I can only combine x and y data from the same branch.')
+            end
+            
+            if s1 > s2
+                name    = xy{1};
+            else
+                name    = xy{2};
+            end
+            
+            xname   = xy{1};
+            yname   = xy{2};
+        end
+    end
+    
+    
     
     t_inputs = fieldnames(z);
     for oo=1:length(t_inputs)
@@ -131,10 +172,10 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    [r,id_cum,f,~,~] = getAll(obj,name,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),[]);
+    [r,id_cum,f,~,~] = getAll(obj,name,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),[],xname,yname);
     
     if nargout == 0 || nargout == 1
-        [x,y,fn,fv] = obj.getY(r,name,f,{},{},1);
+        [x,y,fn,fv] = obj.getY(r,name,f,{},{},1,xname,yname);
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 

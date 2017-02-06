@@ -1,10 +1,13 @@
-function obj = updateTree(obj,varargin)
+function [branchNumber,stepNumber] = updateTree(obj,varargin)
 
     obj.process     = feval(obj.fHandle);
     obj.allInputs   = {};
     ll              = 1;
     obj.allOutputs  = {};
     hh              = 1;
+    
+    branchNumber    = -1;
+    stepNumber      = -1;
     
     if ~isfield(obj.process,'steps')
         % Either we are dealing with a FUBAR process definition file or
@@ -17,6 +20,11 @@ function obj = updateTree(obj,varargin)
                 obj.process         = [];
                 obj.process.name    = func2str(obj.fHandle);
                 obj.process.steps   = {obj.fHandle};
+                if isfield(obj.process,'xy')
+                    obj.process.xy      = obj.process.xy;
+                else
+                    obj.process.xy      = true;
+                end
             else
                 error('Something is wrong with the process or single step function %s you provided.',func2str(obj.fHandle));
             end
@@ -35,8 +43,10 @@ function obj = updateTree(obj,varargin)
             stp = obj.process.steps{oo}();
             if any(strcmp(name,stp.output))
                 % obj.pverbose('To obtain result %s, we need to follow the main branch.\n',name)
-                foundBranch = true;
-                newBranch   = obj.process.steps;
+                foundBranch     = true;
+                newBranch       = obj.process.steps;
+                branchNumber    = 0; %Branch number 0 is the main branch
+                stepNumber      = oo;
                 break;
             end
         end
@@ -63,6 +73,8 @@ function obj = updateTree(obj,varargin)
                             branchStartsAt  = find(strcmp(func2str(obj.process.branches{oo}{1}),cellfun(@(x)func2str(x),obj.process.steps,'UniformOutput',false)));
                             newBranch       = [obj.process.steps(1:branchStartsAt-1) obj.process.branches{oo}];
                             foundBranch     = true;
+                            branchNumber    = oo;
+                            stepNumber      = branchStartsAt+uu;
                         end
                     end
                 end

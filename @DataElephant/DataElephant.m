@@ -1,4 +1,4 @@
-classdef CacheProcessData5 < handle
+classdef DataElephant < handle
     
     properties (Access = public)
         
@@ -12,6 +12,7 @@ classdef CacheProcessData5 < handle
         bystep
         keepme
         kk
+        providexy
         
         % 'default' input parameters
         z_default
@@ -118,7 +119,39 @@ classdef CacheProcessData5 < handle
         requiredInputs(obj,output);
         meminfo(obj,varargin);
         printinputsfor(obj,varargin);
+        obj = DistributedCacheProcessData(obj,varargin);
+        obj = setProcessHandle(obj,fH);
         
+        [r,id_cum] = get(obj,name,z,varargin);
+        [r,id_cum] = dbug(obj,name,z,varargin);
+        
+        varargout  = getm(obj,names,z);
+        
+        function obj = DataElephant(varargin)
+
+            if isa(varargin{1}, 'function_handle')
+                fH  = varargin{1};
+                varargin(1)     = [];
+            else
+                fH  = [];
+            end
+            
+            if isempty(fH)
+                init(obj,varargin{:});
+                releaseAllLocks(obj,true);
+                DistributedCacheProcessData(obj,varargin{:});
+            else
+                setProcessHandle(obj,fH);
+                init(obj,varargin{:});
+                createAliases(obj);
+            end
+        end
+        function delete(obj)
+            cleanexit(obj,'delete');
+        end
+    end
+    
+    methods(Access = private)
         pverbose(obj,varargin);
         pdebug(obj,varargin);
         
@@ -140,8 +173,8 @@ classdef CacheProcessData5 < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,id_cum);
-        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional);
+        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,id_cum,xname,yname);
+        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,xname,yname);
 
         r_n =   fetchStep(obj,name,z_cum,z_step,r,hash,step,lastStepInSequence);
         r_n = calcNewStep(obj,name,z_cum,z_step,r,hash,step,lastStepInSequence);
@@ -151,18 +184,16 @@ classdef CacheProcessData5 < handle
         
         id = generateHash(obj,z_cum,z_step,stepnr,id_req_s,         decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
         id = nextHash(    obj,z_cum,z_step,stepnr,id_req_s,id_dec_s,decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
-    end
-    
-    methods
-        obj = DistributedCacheProcessData(obj,varargin);        
+        
+        
+        
         obj = init(obj,varargin);
-        obj = setProcessHandle(obj,fH);
-        obj = updateTree(obj,name);
+        
+        [bn,sn] = updateTree(obj,name);
         
         obj = setDefault(obj,z);
         
-        [r,id_cum] = get(obj,name,z,varargin);
-        varargout  = getm(obj,names,z);
+        
         
         goodToGo = canCalcOnThisHost(obj,step,name,z,submittedBefore);
         submit(obj,name,z,varargin);
@@ -180,29 +211,9 @@ classdef CacheProcessData5 < handle
         
         createAliases(obj);
         
-        function obj = CacheProcessData5(varargin)
-
-            if isa(varargin{1}, 'function_handle')
-                fH  = varargin{1};
-                varargin(1)     = [];
-            else
-                fH  = [];
-            end
-            
-            if isempty(fH)
-                init(obj,varargin{:});
-                releaseAllLocks(obj,true);
-                DistributedCacheProcessData(obj,varargin{:});
-            else
-                setProcessHandle(obj,fH);
-                init(obj,varargin{:});
-                createAliases(obj);
-            end
-        end
         
-        function delete(obj)
-            cleanexit(obj,'delete');
-        end
+        
+        
         
         mssg = createMessage(obj,action,filename);
         
@@ -215,6 +226,6 @@ classdef CacheProcessData5 < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
-        [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll);
+        [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll,xname,yname);
     end
 end

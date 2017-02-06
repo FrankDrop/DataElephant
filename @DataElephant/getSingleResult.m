@@ -1,4 +1,4 @@
-function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional)
+function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,xname,yname)
 
     if obj.verbose
         fprintf('%sgetSingleResult(''%s'',z_cum,z_step,startAtStep=%i,stopAtStep=%i,lastStepInSequence=%i,r,''%s'',%s,''%s''); @ %s\n',...
@@ -716,13 +716,40 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
         % At the end throw away all the stuff in the r object that
         % is not required for further steps anymore.
 
-        if ~iscell(r)
-            if isfield(r,name)
-                rn.(name) = r.(name);
-                r   = rn;
-            else
-                error('The requested output %s is not part of variable r. Which is weird!',name);
+%         if ~iscell(r)
+%             if isfield(r,name)
+%                 rn.(name) = r.(name);
+%                 r   = rn;
+%             else
+%                 error('The requested output %s is not part of variable r. Which is weird!',name);
+%             end
+%         end
+        
+        
+        if obj.process.xy
+            if ~iscell(r)
+                if isfield(r,name)
+                    rn.(name) = r.(name);
+                    r   = rn;
+                else
+                    error('The requested output (%s) is not part of variable r. Which is weird!',name);
+                end
+            end
+        else
+            if ~iscell(r)
+                if isfield(r,xname) && isfield(r,yname)
+                    rn.(xname)  = r.(xname);
+                    rn.(yname)  = r.(yname);
+                    r           = rn;
+                else
+                    error('One of the requested outputs (%s and %s) is not part of variable r. Which is weird!',xname,yname);
+                end
             end
         end
+        
+        
+        
+        
+        
     end
 end
