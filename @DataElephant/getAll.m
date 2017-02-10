@@ -1,4 +1,4 @@
-function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,id_cum,xname,yname)
+function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,id_cum,minStep)
 
     fnc             = {};
     fnc_step        = [];
@@ -10,7 +10,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
 
     if obj.verbose
         fprintf('%sgetAll(''%s'',z_cum,z_step,startAtStep=%i,stopAtStep=%i,lastStepInSequence=%i,r,''%s''); @ %s\n',sprintf(repmat('\t',1,startAtStep)),...
-            name,startAtStep,stopAtStep,lastStepInSequence,hexhash(obj,id_cum),datestr(now));
+            sprintf('%s;',name{:}),startAtStep,stopAtStep,lastStepInSequence,hexhash(obj,id_cum),datestr(now));
     end
 
     
@@ -261,7 +261,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
 % equal for all functionals in subsequent steps.
 
     if singleUntilStep >= startAtStep
-        [r,id_cum_s,z_cum,z_step]   = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,false,[],xname,yname);
+        [r,id_cum_s,z_cum,z_step]   = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,false,[],minStep);
         id_cum                      = id_cum_s;
     end
     
@@ -274,7 +274,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
 
         if simpleFunctional || getDecisionAsFncOf
             
-            [r_s,id_cum_f,~,~] = getSingleResult(obj,name,z_cum,z_step,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,id_cum,true,getAsFuncOf);
+            [r_s,id_cum_f,~,~] = getSingleResult(obj,name,z_cum,z_step,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,id_cum,true,getAsFuncOf,minStep);
             
             f.sub     = '';
             
@@ -283,23 +283,23 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
             r_f             = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             
             
-            if obj.process.xy
-                if isfield(r_s.(name),'x')
-                    if ~isempty(r_s.(name).x{1})
-                        for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
-                            r_f{rr}.(name).x   = r_s.(name).x{rr};
-                        end
-                    end
-                end
-
-                for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
-                    r_f{rr}.(name).y   = r_s.(name).y{rr};
-                end
-            else
+%             if obj.process.xy
+%                 if isfield(r_s.(name),'x')
+%                     if ~isempty(r_s.(name).x{1})
+%                         for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
+%                             r_f{rr}.(name).x   = r_s.(name).x{rr};
+%                         end
+%                     end
+%                 end
+% 
+%                 for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
+%                     r_f{rr}.(name).y   = r_s.(name).y{rr};
+%                 end
+%             else
                 for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
                     r_f{rr}.(name)   = r_s.(name){rr};
                 end
-            end
+%             end
         else
             obj.pverbose('%sGetting results as a function of the complex functional %s.\n',sprintf(repmat('\t',1,singleUntilStep)),getAsFuncOf);
             
@@ -347,27 +347,15 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
     if stopAtStep == lastStepInSequence
         % At the end throw away all the stuff in the r object that
         % is not required for further steps anymore.
-
-        if obj.process.xy
-            if ~iscell(r)
-                if isfield(r,name)
-                    rn.(name) = r.(name);
-                    r   = rn;
+        if ~iscell(r)
+            for oo=1:length(name)
+                if isfield(r,name{oo})
+                    rn.(name{oo})   = r.(name{oo});
                 else
                     error('The requested output (%s) is not part of variable r. Which is weird!',name);
                 end
             end
-        else
-            if ~iscell(r)
-                if isfield(r,xname) && isfield(r,yname)
-                    rn.(xname)  = r.(xname);
-                    rn.(yname)  = r.(yname);
-                    r           = rn;
-                else
-                    error('One of the requested outputs (%s and %s) is not part of variable r. Which is weird!',xname,yname);
-                end
-            end
-        end
+        end 
+        r   = rn;
     end
-
 end

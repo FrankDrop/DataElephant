@@ -11,47 +11,41 @@ function [r,id_cum] = get(obj,name,varargin)
     
     ccc = onCleanup(@()cleanexit(obj,'get'));
     
-    xy    = regexp(name,',','split');
-    if obj.process.xy
-        if length(xy) > 1
-            error('You cannot specify multiple results for this process, because it will automatically output x and y data.')
-        end
-        
-        name    = xy{1};
-        xname   = name;
-        yname   = name;
-        
-        updateTree(obj,name);
-    else
-        if length(xy) == 1
-            name    = xy{1};
-            updateTree(obj,name);
-            xname   = name;
-            yname   = name;
-        elseif length(xy) == 2
-            [b1,s1] = updateTree(obj,xy{1});
-            [b2,s2] = updateTree(obj,xy{2});
-            
-            if any([b1,s1,b2,s2] == -1)
-                error('Something went wrong');
-            end
-            
-            if (all([b1 b2] > 0) && b1 ~= b2)
-               error('I can only combine x and y data from the same branch.')
-            end
-            
-            if s1 > s2
-                name    = xy{1};
-            else
-                name    = xy{2};
-            end
-            
-            xname   = xy{1};
-            yname   = xy{2};
-        end
+    names_raw       = regexp(name,';','split');
+    if length(names_raw) == 1
+        names_raw{2} = names_raw{1};
     end
     
+    names_stripped  = cell(size(names_raw));
     
+    for oo=1:length(names_raw)
+        strip_special           = regexp(names_raw{oo},'(?<=squeeze\().*(?=\))[.'']*','match');
+        if isempty(strip_special)
+            strip_special       = names_raw{oo};
+        else
+            strip_special       = strip_special{1};
+        end
+        names_stripped{oo}      = regexprep(strip_special,'\([,a-zA-Z0-9:()'']*\)[.'']*','');
+    end
+    
+
+    atBranch    = -1*ones(size(names_stripped));
+    atStep      = -1*ones(size(names_stripped));
+
+    for oo=1:length(names_stripped)
+        [atBranch(oo),atStep(oo)] = updateTree(obj,names_stripped{oo});
+    end
+
+    if any([atBranch,atStep] == -1)
+        error('Something went wrong');
+    end
+
+    if (any(diff(atBranch) ~= 0))
+        error('I can only combine data from the same branch.')
+    end
+
+    minStep     = min(atStep);
+    maxStep     = max(atStep);
     
     t_inputs = fieldnames(z);
     for oo=1:length(t_inputs)
@@ -60,31 +54,20 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
 
-    if ~any(strcmp(name,obj.allOutputs))
-        error('This process does not produce requested output %s.',name);
-    end
-
-    untilStepNumber = [];
-    if ~ischar(name)
-        error('The first argument should be a string.')
-    end
-
-    % Determine what step produces the requested result
-    for ll=length(obj.steps):-1:1
-        if any(strcmp(name,obj.steps(ll).output))
-            untilStepNumber  = obj.steps(ll).number;
-            break;
+    for oo=1:length(names_stripped)
+        if ~any(strcmp(names_stripped{oo},obj.allOutputs))
+            error('This process does not produce requested output %s.',names_stripped{oo});
         end
     end
 
-    assert(~isempty(untilStepNumber),'The requested result %s is not an output of any step in this process.',name);
+    untilStepNumber = maxStep;
     pverbose(obj,'The requested result %s is an output of step %i (%s).\n',name,untilStepNumber,obj.steps(untilStepNumber).name);
 
     
     % Check whether all the arguments are either numeric, cells or chars    
     zflds   = fieldnames(z);
     for oo=1:length(zflds)
-        if islogical(z.(zflds{oo}))
+        if islogical(z.(zflds{oo})) % TODO: Raar, kan dit niet anders?
             z.(zflds{oo}) = double(z.(zflds{oo}));
         end
     end
@@ -111,7 +94,7 @@ function [r,id_cum] = get(obj,name,varargin)
                 z_cum{ii}.(obj.steps(ii).input{aa})     = z.(obj.steps(ii).input{aa});
                 z_step{ii}.(obj.steps(ii).input{aa})    = z.(obj.steps(ii).input{aa});
             catch %#ok<CTCH>
-                error('The step %s requires parameter %s, but it is not set.',obj.steps(ii).name,obj.steps(ii).input{aa});
+                error('The step %s requires parameter %s, but it is not set.',obj.createLink(obj.steps(ii).name),obj.steps(ii).input{aa});
             end
             
             if iscell(z.(obj.steps(ii).input{aa}))
@@ -172,10 +155,21 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    [r,id_cum,f,~,~] = getAll(obj,name,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),[],xname,yname);
+    [r,id_cum,f,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),[],minStep);
     
     if nargout == 0 || nargout == 1
-        [x,y,fn,fv] = obj.getY(r,name,f,{},{},1,xname,yname);
+        
+        [x,y,fn,fv] = obj.getY(r,names_stripped,f,{},{},1); %#ok<ASGLU>
+        
+        y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
+        
+        if strcmp(names_raw{1},names_raw{2})
+            x           = reshape(1:numel(y),size(y));
+        else
+            x           = eval(strrep(names_raw{1},names_stripped{1},'x'));
+        end
+        
+        
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 

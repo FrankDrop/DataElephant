@@ -1,4 +1,4 @@
-function [r_t,decision,z_dec] = fetchDecision(obj,name,z_cum,z_step,r,hash,fasthash,decision_hash,stepnr,lastStepInSequence)
+function [r_t,decision,z_dec] = fetchDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,stepnr,lastStepInSequence)
 
     % First check if the decision is in the fast hash memory
     [z_dec,~,decision,~] = checkOrSelectByHash(obj,hash,fasthash,stepnr,lastStepInSequence,true);
@@ -15,7 +15,7 @@ function [r_t,decision,z_dec] = fetchDecision(obj,name,z_cum,z_step,r,hash,fasth
         decision    = decision{1};
         
         if isempty(decision)
-            canCalcOnThisHost(obj,stepnr,name,z_cum);
+            canCalcOnThisHost(obj,stepnr,z_cum);
             [decision,z_dec] = calcNewDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,stepnr,lastStepInSequence);
         end
     end

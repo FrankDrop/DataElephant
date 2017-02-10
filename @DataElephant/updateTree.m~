@@ -59,7 +59,7 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
                     % would throw an error.
                     for uu=2:length(obj.process.branches{oo})
                         stp = obj.process.branches{oo}{uu}();
-                        if any(strcmp(names,obj.splitOutput(stp.output)))
+                        if any(strcmp(names,obj.splitOutput(stp.output))
                             if foundBranch
                                 error('Branch #%i also provides the result %s.',uu,names)
                             end

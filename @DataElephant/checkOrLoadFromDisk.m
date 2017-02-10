@@ -43,8 +43,8 @@ function varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequen
         decision    = cell(n_hash,1);
     end
     
-    for jj=1:3 % There are three sources and methods for loading.
-        if jj == 1
+%     for jj=1:3 % There are three sources and methods for loading.
+%         if jj == 1
             if obj.steps(step).type % step
                 for ll=1:size(prefixhash,1)                    
                     if size(prefixhash,1) == 0
@@ -129,25 +129,16 @@ function varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequen
 
                                     
                                     if added
-%                                         [~,uD_idx]      = min(sum(abs(uniqueHashes - repmat(hash(ia(ii),:),size(uniqueHashes,1),1)),2));
-                                        
-%                                         if ~addedYet(uD_idx)
-                                            added = add(obj,hash(ia(ii),:),...
-                                                    [],...
-                                                    z_n{ia(ii)},...
-                                                    r_n{ia(ii)},...
-                                                    [],...
-                                                    false,...               % new
-                                                    0,...                   % time
-                                                    step,...
-                                                    lastStepInSequence,...
-                                                    saveme);
-%                                             addedYet(uD_idx) = true;
-                                            
-%                                             if ~added
-%                                                 error('why not?')
-%                                             end
-%                                         end
+                                       added = add(obj,hash(ia(ii),:),...
+                                                [],...
+                                                z_n{ia(ii)},...
+                                                r_n{ia(ii)},...
+                                                [],...
+                                                false,...               % new
+                                                0,...                   % time
+                                                step,...
+                                                lastStepInSequence,...
+                                                saveme);
                                     end
                                 end
                             end
@@ -285,130 +276,130 @@ function varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequen
                     end
                 end
             end
-        else
-            if lookForFasthash
-                break;
-            end
-            
-            oo = jj -1;
-
-            if oo == 1 && obj.load_old && ~all(checklist)
-                error('You still want to use this?!')
-                [filename,~,varname,ori_id] = getFolderAndVarname(obj,hash,step);
-                go = true;
-            elseif oo == 2 && obj.load_really_old && ~all(checklist)
-                error('You still want to use this?!')
-                [filename,~,varname,ori_id] = getFolderAndVarnameOld(obj,hash,obj.steps(step).type);
-                go = true;
-            else
-                go = false;
-            end
-
-            if go
-                for uu=1:length(filename)                
-                    if exist(filename{uu},'file') == 2
-
-                        if obj.fileverbose
-                            fprintf(2,'Found %s. Number of data sets in memory: %i. Number of hashes: %i.\n',filename{uu},length(obj.data),length(obj.hash));
-                        end
-                        getLock(obj,filename{uu},true);
-
-                        vars                    = whos('-file',filename{uu});
-                        [~,ia,~]                = intersect(varname{uu},{vars.name});
-                        inThisFile              = ori_id{uu}(ia);
-                        checklist(inThisFile)   = true;
-                        
-                        
-                        if requestToLoad && any(inThisFile)
-
-                            if obj.verbose
-                                fprintf('%sLoading %i earlier computed results from the HDD from file %s.\n',...
-                                    sprintf(repmat('\t',1,step)),length(ia),filename{uu});
-                            end
-                            sdata       = load(filename{uu});
-                            if obj.verbose && length(ia) > 100
-                                fprintf('%sFinished loading, processing loaded data.\n',...
-                                    sprintf(repmat('\t',1,step)));
-                            end
-
-                            ttt                     = 0;
-                            
-                            if obj.steps(step).type % = step
-                                added   = true;
-                                for ii=1:length(ia)
-                                    if isempty(z_n{ori_id{uu}(ia(ii))})
-                                        z_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).z;
-                                        r_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).r_n;
-                                        ttt = ttt + 1;
-                                        
-                                        if added
-                                            added = add(obj,hash(ori_id{uu}(ia(ii)),:),...
-                                                    [],...
-                                                    z_n{ori_id{uu}(ia(ii))},...
-                                                    r_n{ori_id{uu}(ia(ii))},...
-                                                    decision{ori_id{uu}(ia(ii))},...
-                                                    true,...
-                                                    0,...
-                                                    step,...
-                                                    lastStepInSequence,...
-                                                    saveme);
-                                        end
-                                    end
-                                end
-                            else
+%         else
+%             if lookForFasthash
+%                 break;
+%             end
+%             
+%             oo = jj -1;
+% 
+%             if oo == 1 && obj.load_old && ~all(checklist)
+%                 error('You still want to use this?!')
+%                 [filename,~,varname,ori_id] = getFolderAndVarname(obj,hash,step);
+%                 go = true;
+%             elseif oo == 2 && obj.load_really_old && ~all(checklist)
+%                 error('You still want to use this?!')
+%                 [filename,~,varname,ori_id] = getFolderAndVarnameOld(obj,hash,obj.steps(step).type);
+%                 go = true;
+%             else
+%                 go = false;
+%             end
+% 
+%             if go
+%                 for uu=1:length(filename)                
+%                     if exist(filename{uu},'file') == 2
+% 
+%                         if obj.fileverbose
+%                             fprintf(2,'Found %s. Number of data sets in memory: %i. Number of hashes: %i.\n',filename{uu},length(obj.data),length(obj.hash));
+%                         end
+%                         getLock(obj,filename{uu},true);
+% 
+%                         vars                    = whos('-file',filename{uu});
+%                         [~,ia,~]                = intersect(varname{uu},{vars.name});
+%                         inThisFile              = ori_id{uu}(ia);
+%                         checklist(inThisFile)   = true;
+%                         
+%                         
+%                         if requestToLoad && any(inThisFile)
+% 
+%                             if obj.verbose
+%                                 fprintf('%sLoading %i earlier computed results from the HDD from file %s.\n',...
+%                                     sprintf(repmat('\t',1,step)),length(ia),filename{uu});
+%                             end
+%                             sdata       = load(filename{uu});
+%                             if obj.verbose && length(ia) > 100
+%                                 fprintf('%sFinished loading, processing loaded data.\n',...
+%                                     sprintf(repmat('\t',1,step)));
+%                             end
+% 
+%                             ttt                     = 0;
+%                             
+%                             if obj.steps(step).type % = step
 %                                 added   = true;
-                                for ii=1:length(ia)
-                                    if isempty(z_n{ori_id{uu}(ia(ii))})
-                                        z_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).z;
-                                        decision{ori_id{uu}(ia(ii))}    = sdata.(varname{uu}{ia(ii)}).decision;
-                                        ttt = ttt + 1;
-                                        
-                                        isempty(fasthash)
-                                        length(ia)
-                                        
-                                        if ~isempty(fasthash) && length(ia) == 1
-                                            add(obj,hash(ori_id{uu}(ia(ii)),:),...
-                                                    fasthash(1,:),...
-                                                    z_n{ori_id{uu}(ia(ii))},...
-                                                    r_n{ori_id{uu}(ia(ii))},...
-                                                    decision{ori_id{uu}(ia(ii))},...
-                                                    true,...
-                                                    0,...
-                                                    step,...
-                                                    lastStepInSequence,...
-                                                    saveme);
-                                        else
-                                            add(obj,hash(ori_id{uu}(ia(ii)),:),...
-                                                    [],...
-                                                    z_n{ori_id{uu}(ia(ii))},...
-                                                    r_n{ori_id{uu}(ia(ii))},...
-                                                    decision{ori_id{uu}(ia(ii))},...
-                                                    true,...
-                                                    0,...
-                                                    step,...
-                                                    lastStepInSequence,...
-                                                    saveme);
-                                        end
-                                    end
-                                end
-                            end
-                            
-                            if obj.verbose && length(ia) > 100
-                                fprintf('%s%i results were useful.\n',...
-                                    sprintf(repmat('\t',1,step)),ttt);
-                            end
-                        end
-
-                        if obj.verbose && length(ia) > 100
-                            fprintf('%sFinished processing loaded data.\n',...
-                                sprintf(repmat('\t',1,step)));
-                        end
-                        releaseLock(obj,filename{uu},true);
-                    end
-                end
-            end
-        end
-    end
+%                                 for ii=1:length(ia)
+%                                     if isempty(z_n{ori_id{uu}(ia(ii))})
+%                                         z_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).z;
+%                                         r_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).r_n;
+%                                         ttt = ttt + 1;
+%                                         
+%                                         if added
+%                                             added = add(obj,hash(ori_id{uu}(ia(ii)),:),...
+%                                                     [],...
+%                                                     z_n{ori_id{uu}(ia(ii))},...
+%                                                     r_n{ori_id{uu}(ia(ii))},...
+%                                                     decision{ori_id{uu}(ia(ii))},...
+%                                                     true,...
+%                                                     0,...
+%                                                     step,...
+%                                                     lastStepInSequence,...
+%                                                     saveme);
+%                                         end
+%                                     end
+%                                 end
+%                             else
+% %                                 added   = true;
+%                                 for ii=1:length(ia)
+%                                     if isempty(z_n{ori_id{uu}(ia(ii))})
+%                                         z_n{ori_id{uu}(ia(ii))}         = sdata.(varname{uu}{ia(ii)}).z;
+%                                         decision{ori_id{uu}(ia(ii))}    = sdata.(varname{uu}{ia(ii)}).decision;
+%                                         ttt = ttt + 1;
+%                                         
+%                                         isempty(fasthash)
+%                                         length(ia)
+%                                         
+%                                         if ~isempty(fasthash) && length(ia) == 1
+%                                             add(obj,hash(ori_id{uu}(ia(ii)),:),...
+%                                                     fasthash(1,:),...
+%                                                     z_n{ori_id{uu}(ia(ii))},...
+%                                                     r_n{ori_id{uu}(ia(ii))},...
+%                                                     decision{ori_id{uu}(ia(ii))},...
+%                                                     true,...
+%                                                     0,...
+%                                                     step,...
+%                                                     lastStepInSequence,...
+%                                                     saveme);
+%                                         else
+%                                             add(obj,hash(ori_id{uu}(ia(ii)),:),...
+%                                                     [],...
+%                                                     z_n{ori_id{uu}(ia(ii))},...
+%                                                     r_n{ori_id{uu}(ia(ii))},...
+%                                                     decision{ori_id{uu}(ia(ii))},...
+%                                                     true,...
+%                                                     0,...
+%                                                     step,...
+%                                                     lastStepInSequence,...
+%                                                     saveme);
+%                                         end
+%                                     end
+%                                 end
+%                             end
+%                             
+%                             if obj.verbose && length(ia) > 100
+%                                 fprintf('%s%i results were useful.\n',...
+%                                     sprintf(repmat('\t',1,step)),ttt);
+%                             end
+%                         end
+% 
+%                         if obj.verbose && length(ia) > 100
+%                             fprintf('%sFinished processing loaded data.\n',...
+%                                 sprintf(repmat('\t',1,step)));
+%                         end
+%                         releaseLock(obj,filename{uu},true);
+%                     end
+%                 end
+%             end
+%         end
+%     end
 
     if requestToLoad
         varargout{1} = z_n;

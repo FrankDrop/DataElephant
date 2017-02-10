@@ -1,14 +1,15 @@
-function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,xname,yname)
+function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,minStep)
 
     if obj.verbose
-        fprintf('%sgetSingleResult(''%s'',z_cum,z_step,startAtStep=%i,stopAtStep=%i,lastStepInSequence=%i,r,''%s'',%s,''%s''); @ %s\n',...
-                sprintf(repmat('\t',1,startAtStep)),name,startAtStep,singleUntilStep,lastStepInSequence,hexhash(obj,id_cum),num2str(returnMultiple),functional,datestr(now));
+        fprintf('%sgetSingleResult(''%s'', z_cum, z_step, startAtStep=%i, stopAtStep=%i, lastStepInSequence=%i, r, id_cum=''%s'', returnMultiple=%s, functional=''%s''); @ %s\n',...
+                sprintf(repmat('\t',1,startAtStep)),sprintf('%s;',name{:}),startAtStep,singleUntilStep,lastStepInSequence,hexhash(obj,id_cum),num2str(returnMultiple),functional,datestr(now));
     end
 
     % First we check whether there are any decisions in this stream
     % that end with a single result. If so, we can check whether
     % this decision already exists and use it as an efficient
     % savepoint.
+    
     id_req_s                = cell(singleUntilStep+1,1);
     id_dec_s                = cell(singleUntilStep+1,1);
     id_fast_s               = cell(singleUntilStep+1,1);
@@ -170,6 +171,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
         end
     end
     
+    
 %%
     % Then, starting from the last savepoint, we check if the
     % individual step results exist or not.
@@ -202,6 +204,11 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
         end
         
     end
+    
+    % Here a little hack to ensure that we start at minstep
+    startCollectingAt   = min([startCollectingAt minStep]);
+    
+    
     
     % So at this point we know whether we are going to collect the data
     % starting at 'singleUntilStep' or at 'startAtStep'. If we start at
@@ -366,14 +373,9 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                         end
                     end
                 else
+                    error('This code is not adjusted yet.')
                     obj.pverbose('%sGetting %i possible previous results at %i (%s) from memory or HDD.\n',sprintf(repmat('\t',1,oo)),size(id_req_s{oo+1},1),oo,obj.steps(oo).name);
-                    
-%                     if obj.verbose && size(id_req_s{oo+1},1) < 20
-%                         for uuu=1:size(id_req_s{oo+1},1)
-%                             fprintf('%s- %s\n',sprintf(repmat('\t',1,oo)),hexhash(obj,id_req_s{oo+1}(uuu,:)));
-%                         end
-%                     end
-                    
+                                        
                     add_alloc(obj,size(id_req_s{oo+1},1),oo);
                     
                     [~,r_o,~,chklst]        = checkOrSelectByHash(obj,id_req_s{oo+1},[],oo,lastStepInSequence,false);
@@ -384,7 +386,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                         hhh             = 1;
                         n               = 0;
                         
-                        goodToGo        = canCalcOnThisHost(obj,oo,name,z_cum{oo},false);
+                        goodToGo        = canCalcOnThisHost(obj,oo,z_cum{oo},false);
                         gotWhatWeWant   = false;
                         if goodToGo == 1 % We can calculate it all by ourselves!
                             gotWhatWeWant = true;
@@ -468,7 +470,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                             % the unique hashes....
                             
                             if ~isempty(decidedOver)
-                                r_o{uu}     = fetchStep(obj, name, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
+                                r_o{uu}     =   fetchStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
                             else
                                 r_o{uu}     = calcNewStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
                             end
@@ -502,7 +504,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 if obj.verbose
                     fprintf('%sGetting single result at %i (%s) : %s.\n',sprintf(repmat('\t',1,oo)),oo,obj.steps(oo).name,hexhash(obj,id_req_s{oo+1}));
                 end
-                r = obj.addIndividual(r, fetchStep(obj,name,z_cum{oo},z_step{oo},r,id_req_s{oo+1},oo,lastStepInSequence), []);
+                r = obj.addIndividual(r, fetchStep(obj,z_cum{oo},z_step{oo},r,id_req_s{oo+1},oo,lastStepInSequence), []);
             end
         else
             
@@ -673,7 +675,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                     fprintf('%sWe need to take a decision at %i (%s) : %s / F:%s.\n',sprintf(repmat('\t',1,oo)),oo,obj.steps(oo).name,hexhash(obj,id_req_s{oo+1}),hexhash(obj,id_fast_s{oo+1}));
                 end
 
-                [r,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,name,z_cum{oo},z_step{oo},r,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
+                [r,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,z_cum{oo},z_step{oo},r,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
 
                 for nn=1:length(z_cum)
                     if isfield(z_cum{nn},(obj.steps(oo).decide))
@@ -716,40 +718,16 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
         % At the end throw away all the stuff in the r object that
         % is not required for further steps anymore.
 
-%         if ~iscell(r)
-%             if isfield(r,name)
-%                 rn.(name) = r.(name);
-%                 r   = rn;
-%             else
-%                 error('The requested output %s is not part of variable r. Which is weird!',name);
-%             end
-%         end
         
-        
-        if obj.process.xy
-            if ~iscell(r)
-                if isfield(r,name)
-                    rn.(name) = r.(name);
-                    r   = rn;
+        if ~iscell(r)
+            for oo=1:length(name)
+                if isfield(r,name{oo})
+                    rn.(name{oo})   = r.(name{oo});
                 else
-                    error('The requested output (%s) is not part of variable r. Which is weird!',name);
+                    error('The requested output (%s) is not part of variable r. Which is weird!',name{oo});
                 end
             end
-        else
-            if ~iscell(r)
-                if isfield(r,xname) && isfield(r,yname)
-                    rn.(xname)  = r.(xname);
-                    rn.(yname)  = r.(yname);
-                    r           = rn;
-                else
-                    error('One of the requested outputs (%s and %s) is not part of variable r. Which is weird!',xname,yname);
-                end
-            end
+            r   = rn;
         end
-        
-        
-        
-        
-        
     end
 end

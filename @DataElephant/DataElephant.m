@@ -1,6 +1,6 @@
 classdef DataElephant < handle
     
-    properties (Access = public)
+    properties (Access = private)
         
         % Storage for data
         hash
@@ -47,12 +47,10 @@ classdef DataElephant < handle
         load_really_old
         savememory
         verbose
-        debug
         fileverbose
         deepverbose
         funcverbose
         flockverbose
-        validate
         allInputs
         allOutputs
         savepoints
@@ -64,9 +62,6 @@ classdef DataElephant < handle
         hashlength
         fnchashcache
         fastfnchashcache
-        
-        % Get-Aliasses
-        g
         
         % Folders
         rootfolder
@@ -90,22 +85,15 @@ classdef DataElephant < handle
         flockport
         flockip
         flockpacketlength
-        
-        % Memory usage
-        memuse
-        memoryverbose
-    end
-    
-    properties (Access = private)
-        
+
     end
     
     methods(Static)
         fldr    = tidyfoldername(fldr);
         mssg    = addPort(mssg,port);
-        
+        s       = createLink(n);
         z       = args(varargin);
-        
+        varargout    = splitOutput(out);
         [answer,id,filename] = readMessage(mssg);
         
         r_i     = getIndividual(r_i,fields,fnc,idx,n_choices);
@@ -143,8 +131,8 @@ classdef DataElephant < handle
             else
                 setProcessHandle(obj,fH);
                 init(obj,varargin{:});
-                createAliases(obj);
             end
+            updateTree(obj);
         end
         function delete(obj)
             cleanexit(obj,'delete');
@@ -173,14 +161,14 @@ classdef DataElephant < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,id_cum,xname,yname);
-        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,xname,yname);
+        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,id_cum,minStep);
+        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,minStep);
 
-        r_n =   fetchStep(obj,name,z_cum,z_step,r,hash,step,lastStepInSequence);
-        r_n = calcNewStep(obj,name,z_cum,z_step,r,hash,step,lastStepInSequence);
+                            r_n =   fetchStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
+                            r_n = calcNewStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
         
-        [r_t,decision,z_dec]    =   fetchDecision(obj,name,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
-        [r,decision,z_dec]      = calcNewDecision(obj,name,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
+        [r_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
+        [r,decision,z_dec]      = calcNewDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
         
         id = generateHash(obj,z_cum,z_step,stepnr,id_req_s,         decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
         id = nextHash(    obj,z_cum,z_step,stepnr,id_req_s,id_dec_s,decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
@@ -195,7 +183,7 @@ classdef DataElephant < handle
         
         
         
-        goodToGo = canCalcOnThisHost(obj,step,name,z,submittedBefore);
+        goodToGo = canCalcOnThisHost(obj,step,z,submittedBefore);
         submit(obj,name,z,varargin);
         
         savestepsave(obj,fnm,H);
@@ -209,11 +197,6 @@ classdef DataElephant < handle
         savestep(obj,step,removeFromMemory);
         saveall(obj,removeFromMemory);
         
-        createAliases(obj);
-        
-        
-        
-        
         
         mssg = createMessage(obj,action,filename);
         
@@ -226,6 +209,6 @@ classdef DataElephant < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
-        [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll,xname,yname);
+        [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll);
     end
 end

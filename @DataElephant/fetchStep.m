@@ -1,4 +1,4 @@
-function r_n = fetchStep(obj,~,z_cum,z_step,r,hash,stepnr,lastStepInSequence)
+function r_n = fetchStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence)
     
     gotWhatWeWant   = false;
     submittedBefore = false;
@@ -15,8 +15,8 @@ function r_n = fetchStep(obj,~,z_cum,z_step,r,hash,stepnr,lastStepInSequence)
         
         if isempty(r_n)
             
-            someNameOfThisStep  = obj.steps(stepnr).output{1}; % We have to request an output of this particular step, because z_cum contains the input arguments up to this step only.
-            goodToGo = canCalcOnThisHost(obj,stepnr,someNameOfThisStep,z_cum,submittedBefore);
+%             someNameOfThisStep  = obj.steps(stepnr).output{1}; % We have to request an output of this particular step, because z_cum contains the input arguments up to this step only.
+            goodToGo = canCalcOnThisHost(obj,stepnr,z_cum,submittedBefore);
             
             if goodToGo == 1
                 r_n = calcNewStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence);
