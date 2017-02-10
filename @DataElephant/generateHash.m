@@ -22,8 +22,6 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
     else
         nr_func = 1;
     end
-
-    
     
     if stepnr == 1
         prehash     = -1*ones(2*n_fields+2,16,nr_func);
@@ -136,11 +134,7 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
             prehash(2*n_fields+3,:)     = CalcMD5(prevhash,'char','Dec');
             id                          = [lastCommonHash(obj,id_req_s) CalcMD5(prehash,'char','Dec')];
             
-        else
-%             if stepnr > 1
-%                 prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
-%             end
-            
+        else            
             if stepnr == decisionStartAt(atDecision)
                 prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
                 
@@ -153,7 +147,6 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
             else
                 id  = zeros(size(id_req_s,1),size(id_req_s,2)+16);
                 for uu=1:size(id,1)
-%                     prehash(2*n_fields+3,:)     = CalcMD5(id_req_s(uu,(end-obj.hashlength+1):end),'char','Dec');
                     prehash(2*n_fields+3,:)     = id_req_s(uu,(end-obj.hashlength+1):end);
                     id(uu,:)                    = [id_req_s(uu,:) CalcMD5(prehash,'char','Dec')];
                 end

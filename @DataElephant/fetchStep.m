@@ -19,7 +19,7 @@ function r_n = fetchStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence)
             goodToGo = canCalcOnThisHost(obj,stepnr,z_cum,submittedBefore);
             
             if goodToGo == 1
-                r_n = calcNewStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence);
+                r_n = calcNewStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence,true);
                 gotWhatWeWant = true;
             elseif goodToGo == 2
                 % We submitted to the host. We wait and then check again

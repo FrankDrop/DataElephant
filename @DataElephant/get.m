@@ -1,5 +1,8 @@
 function [r,id_cum] = get(obj,name,varargin)
 
+    t_getStart          = tic;
+    obj.getTime         = 0;
+
     z_thisCall          = obj.args(varargin{:});
     thisCallInputNames  = fieldnames(z_thisCall);
     
@@ -29,11 +32,26 @@ function [r,id_cum] = get(obj,name,varargin)
     end
     
 
-    atBranch    = -1*ones(size(names_stripped));
-    atStep      = -1*ones(size(names_stripped));
+    if strcmp(names_stripped{1},names_stripped{2})
+        [atBranch(2),atStep(2)] = updateTree(obj,names_stripped{2});
+        
+        if ~isempty(obj.x_output.(names_stripped{2}))
+            names_stripped{1}       = obj.x_output.(names_stripped{2});
+            names_raw{1}            = obj.x_output.(names_stripped{2});
+            
+            [atBranch(1),atStep(1)] = updateTree(obj,names_stripped{1});
+            [atBranch(2),atStep(2)] = updateTree(obj,names_stripped{2});
+        else
+            atBranch(1)     = atBranch(2);
+            atStep(1)       = atStep(2);
+        end
+    else
+        atBranch    = -1*ones(size(names_stripped));
+        atStep      = -1*ones(size(names_stripped));
 
-    for oo=1:length(names_stripped)
-        [atBranch(oo),atStep(oo)] = updateTree(obj,names_stripped{oo});
+        for oo=1:length(names_stripped)
+            [atBranch(oo),atStep(oo)] = updateTree(obj,names_stripped{oo});
+        end
     end
 
     if any([atBranch,atStep] == -1)
@@ -155,7 +173,7 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    [r,id_cum,f,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),[],minStep);
+    [r,id_cum,f,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
     
     if nargout == 0 || nargout == 1
         
@@ -173,4 +191,6 @@ function [r,id_cum] = get(obj,name,varargin)
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 
+    t_totalGetTime  = toc(t_getStart);
+    fprintf('Done. This get() call took %1.3f s, of which %1.3f s was inside steps calculating results. Overhead = %1.1f%%.',t_totalGetTime,obj.getTime,100*(1-obj.getTime/t_totalGetTime));
 end

@@ -86,11 +86,12 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
     obj.steps               = [];
     for oo=1:length(obj.process.steps)
         
-        step                    = obj.process.steps{oo}();
-        obj.steps(oo).number    = oo;
-        obj.steps(oo).name      = step.name;
-        obj.steps(oo).type      = strcmp(step.type,'step');
-        obj.steps(oo).saveme    = step.saveme == 1;
+        step                        = obj.process.steps{oo}();
+        obj.steps(oo).number        = oo;
+        obj.steps(oo).name          = step.name;
+        obj.steps(oo).type          = strcmp(step.type,'step');
+        obj.steps(oo).saveme        = step.saveme == 1;
+        obj.steps(oo).memorizeme    = step.memorizeme == 1;
         
         if ~isfield(step,'hosttypes')
             obj.steps(oo).hosttypes     = 'all';
@@ -161,7 +162,8 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
         obj.steps(oo).x_output  = cell(length(step.output),1);
         
         for ii=1:length(step.output)
-            [obj.steps(oo).x_output{ii}, actualOutput{ii}]  = obj.splitOutput(step.output{ii});
+            [x_out, actualOutput{ii}]           = obj.splitOutput(step.output{ii});
+            obj.x_output.(actualOutput{ii})     = x_out;
         end
         
         step.output     = actualOutput;

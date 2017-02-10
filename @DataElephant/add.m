@@ -1,5 +1,7 @@
 function added = add(obj,hash,fasthash,z,r_n,decision,n,time,step,lastStepInSequence,saveme)
 
+    obj.getTime     = obj.getTime + time;
+
     if ~isempty(decision)
         obj.dec_data(obj.uuu).z         = z;
         obj.dec_data(obj.uuu).decision  = decision;        

@@ -85,35 +85,31 @@ classdef DataElephant < handle
         flockport
         flockip
         flockpacketlength
-
+        
+        x_output
+        getTime
     end
     
-    methods(Static)
-        fldr    = tidyfoldername(fldr);
-        mssg    = addPort(mssg,port);
-        s       = createLink(n);
-        z       = args(varargin);
-        varargout    = splitOutput(out);
-        [answer,id,filename] = readMessage(mssg);
+    methods(Static, Access = private)
+        fldr                    = tidyfoldername(fldr);
+        mssg                    = addPort(mssg,port);
+        s                       = createLink(n);
+        z                       = args(varargin);
+        varargout               = splitOutput(out);
+        [answer,id,filename]    = readMessage(mssg);
+        r_i                     = getIndividual(r_i,fields,fnc,idx,n_choices);
+        r                       = addIndividual(r,r_i,uu);
         
-        r_i     = getIndividual(r_i,fields,fnc,idx,n_choices);
-        r       = addIndividual(r,r_i,uu);
-        
-        listProcesses();
     end
     
     methods(Access = public)
         info(obj,varargin);
         requiredInputs(obj,output);
         meminfo(obj,varargin);
-        printinputsfor(obj,varargin);
-        obj = DistributedCacheProcessData(obj,varargin);
-        obj = setProcessHandle(obj,fH);
+        printInputsFor(obj,varargin);
+        printOptionalInputsFor(obj,output,varargin);
         
         [r,id_cum] = get(obj,name,z,varargin);
-        [r,id_cum] = dbug(obj,name,z,varargin);
-        
-        varargout  = getm(obj,names,z);
         
         function obj = DataElephant(varargin)
 
@@ -139,7 +135,13 @@ classdef DataElephant < handle
         end
     end
     
-    methods(Access = private)
+	methods(Access = private)
+        
+        cleanexit(obj,fnc);
+        s = config(obj, hostname);
+        obj = DistributedCacheProcessData(obj,varargin);
+        obj = setProcessHandle(obj,fH);
+    
         pverbose(obj,varargin);
         pdebug(obj,varargin);
         
@@ -147,7 +149,6 @@ classdef DataElephant < handle
         obj     = revertAlloc(obj);
         added   = add(obj,hash,fasthash,z,r_n,decision,n,time,step,lastStepInSequence,saveme);
         
-        dmem    = diffmem(obj);
         id      = lastCommonHash(obj,id_req_s);
         id_hex  = hexhash(obj,dec_hash,varargin);
         
@@ -161,19 +162,19 @@ classdef DataElephant < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,id_cum,minStep);
-        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,minStep);
+        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,f,id_cum,minStep);
+        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep);
 
                             r_n =   fetchStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
-                            r_n = calcNewStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
+                            r_n = calcNewStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence,checkOutputs);
         
         [r_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
         [r,decision,z_dec]      = calcNewDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
         
         id = generateHash(obj,z_cum,z_step,stepnr,id_req_s,         decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
         id = nextHash(    obj,z_cum,z_step,stepnr,id_req_s,id_dec_s,decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
-        
-        
+        id = generateFasthash(obj,z_cum,stepnr);
+        obj = makeFunctionalCache(obj,inputName,inputContent);
         
         obj = init(obj,varargin);
         
@@ -189,7 +190,7 @@ classdef DataElephant < handle
         savestepsave(obj,fnm,H);
         savedecisionsave(obj,fnm,H);
         
-        savestepbyidx(obj,fldr,idx)
+        savestepbyidx(obj,fldr,idx);
         
         savestepto(obj,fldr,D,N);
         savedecisionto(obj,fldr,D,N);

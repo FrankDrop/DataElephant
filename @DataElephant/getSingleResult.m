@@ -1,4 +1,4 @@
-function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,id_cum,returnMultiple,functional,minStep)
+function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
 
     if obj.verbose
         fprintf('%sgetSingleResult(''%s'', z_cum, z_step, startAtStep=%i, stopAtStep=%i, lastStepInSequence=%i, r, id_cum=''%s'', returnMultiple=%s, functional=''%s''); @ %s\n',...
@@ -339,8 +339,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
 
                 new_output_fields = obj.steps(oo).output;
                 for bb=1:length(new_output_fields)
-                    r.(new_output_fields{bb}).x   = cell(size(id_req_s{oo+1},1),1);
-                    r.(new_output_fields{bb}).y   = cell(size(id_req_s{oo+1},1),1);
+                    r.(new_output_fields{bb})   = cell(size(id_req_s{oo+1},1),1);
                 end
                 fnc_output_fields = [fnc_output_fields new_output_fields]; %#ok<AGROW>
 
@@ -364,16 +363,12 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                     for uu=collectDataForIdx(oo) % Should be executed only once...
                         for bb=1:length(new_output_fields)
                             if isfield(r_o,new_output_fields{bb})
-                                if isfield(r_o.(new_output_fields{bb}),'x')
-                                    r.(new_output_fields{bb}).x{uu} = r_o.(new_output_fields{bb}).x;
-                                end
-                                r.(new_output_fields{bb}).y{uu} = r_o.(new_output_fields{bb}).y;
-                                r.(new_output_fields{bb}).f     = t_field;
+                                r.(new_output_fields{bb}){uu}   = r_o.(new_output_fields{bb});
+                                f.(new_output_fields{bb}).f     = t_field;
                             end
                         end
                     end
                 else
-                    error('This code is not adjusted yet.')
                     obj.pverbose('%sGetting %i possible previous results at %i (%s) from memory or HDD.\n',sprintf(repmat('\t',1,oo)),size(id_req_s{oo+1},1),oo,obj.steps(oo).name);
                                         
                     add_alloc(obj,size(id_req_s{oo+1},1),oo);
@@ -402,8 +397,9 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                                 % We submitted to the host. We wait and then check again
                                 % for availability on the cache.
                                 obj.pverbose(repmat('\b',1,n))
-                                msg = sprintf('At %s, %i out of %i results were not there yet, waiting for %i seconds. Press ctrl+c to stop waiting.\r',datestr(now),uncalculatedResults,length(chklst),pauseSequence(hhh));
-                                n=numel(msg);
+                                msg = sprintf('At %s, %i out of %i results were not there yet, waiting for %i seconds. Press ctrl+c to stop waiting.\r',...
+                                    datestr(now),uncalculatedResults,length(chklst),pauseSequence(hhh));
+                                n = numel(msg);
                                 obj.pverbose(msg);
                                 pause(pauseSequence(hhh))
                                 hhh = min([hhh+1 length(pauseSequence)]);
@@ -472,7 +468,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                             if ~isempty(decidedOver)
                                 r_o{uu}     =   fetchStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
                             else
-                                r_o{uu}     = calcNewStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
+                                r_o{uu}     = calcNewStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence,uu == 1);
                             end
 
                             if obj.verbose && uncalculatedResults > uncalculatedResultsWithCounter
@@ -485,11 +481,8 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
 
                         for bb=1:length(new_output_fields)
                             if isfield(r_o{uu},new_output_fields{bb})
-                                if isfield(r_o{uu}.(new_output_fields{bb}),'x')
-                                    r.(new_output_fields{bb}).x{uu} = r_o{uu}.(new_output_fields{bb}).x;
-                                end
-                                r.(new_output_fields{bb}).y{uu} = r_o{uu}.(new_output_fields{bb}).y;
-                                r.(new_output_fields{bb}).f     = t_field;
+                                r.(new_output_fields{bb}){uu}   = r_o{uu}.(new_output_fields{bb});
+                                f.(new_output_fields{bb}).f     = t_field;
                             end
                         end
                     end
@@ -573,6 +566,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 end
                 
                 r_n         = r;
+                f_n         = f;
                 z_cum_n     = z_cum;
                 z_step_n    = z_step;
                 
@@ -589,8 +583,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 end
                 
                 for bb=1:length(decide_output_fields)
-                    r_n.(decide_output_fields{bb}).x = cell(size(id_req_s{oo+1},1),1);
-                    r_n.(decide_output_fields{bb}).y = cell(size(id_req_s{oo+1},1),1);
+                    r_n.(decide_output_fields{bb})    = cell(size(id_req_s{oo+1},1),1);
                 end
              
                 if obj.verbose
@@ -633,11 +626,8 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
 
                     for bb=1:length(decide_output_fields)
                         if isfield(r_o{uu},decide_output_fields{bb})
-                            if isfield(r_o{uu}.(decide_output_fields{bb}),'x')
-                                r_n.(decide_output_fields{bb}).x{uu}  = r_o{uu}.(decide_output_fields{bb}).x;
-                            end
-                            r_n.(decide_output_fields{bb}).y{uu}  = r_o{uu}.(decide_output_fields{bb}).y;
-                            r_n.(decide_output_fields{bb}).f      = t_field;
+                            r_n.(decide_output_fields{bb}){uu}      = r_o{uu}.(decide_output_fields{bb});
+                            r_f.(decide_output_fields{bb}).f        = t_field;
                         end
                     end
                     
@@ -662,6 +652,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 z_cum           = z_cum_n;
                 z_step          = z_step_n;
                 r               = r_n;
+                f               = r_f;
                 
                 decidedOver     = obj.steps(oo).decide;
                 

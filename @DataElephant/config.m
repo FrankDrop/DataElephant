@@ -1,4 +1,4 @@
-function [s] = config(~, hostname)
+function [s] = config(obj, hostname)
     switch hostname
         otherwise
             s.save                  = 'yes';
