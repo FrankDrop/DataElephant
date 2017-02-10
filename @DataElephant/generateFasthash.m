@@ -14,7 +14,7 @@ function id = generateFasthash(obj,z_cum,stepnr)
         
         if iscell(z_cum.(s_fields{oo}))
             assert(iscolumn(z_cum.(s_fields{oo})));
-            assert(isnumeric(z_cum.(s_fields{oo}){1}));
+%             assert(isnumeric(z_cum.(s_fields{oo}){1}));
             assert(isfield(obj.fastfnchashcache,s_fields{oo}));
             
             prehash(2*oo,:)       = CalcMD5(obj.fastfnchashcache.(s_fields{oo}),'char','Dec');

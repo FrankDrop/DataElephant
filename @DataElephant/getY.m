@@ -62,7 +62,6 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
                 else
                     x   = r{1}.(names_stripped{1});
                 end
-%                 x   = r{1}.(names_stripped{1});
                 
                 if (strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
                     for oo=1:length(f.this.value)

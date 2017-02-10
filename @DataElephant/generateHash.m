@@ -143,7 +143,11 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
             
         else            
             if stepnr == decisionStartAt(atDecision)
-                prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
+                if stepnr > 1
+%                     prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
+%                 else
+                    prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
+                end
                 
                 id  = zeros(length(z_step.(decisionDecidesOver{atDecision})),size(id_req_s,2)+16);
                 

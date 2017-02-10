@@ -41,6 +41,11 @@ figure
 %%
 
 figure
+    plot(a.get('f_y;f_x',z),'r')
+    axis equal
+%%
+
+figure
     plot(a.get('x;y',z),'r')
     axis equal
     
@@ -57,3 +62,12 @@ a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').y
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').mo('raf_path')
 
+
+%%
+
+figure
+    plot(a.get('f_x',z,'raf_path','RAF/BlackwoodWR.raf'),'r')
+    plot(a.get('f_x',z,'raf_path','RAF/lap2.raf'),'g')
+    plot(a.get('f_x',z,'raf_path','RAF/lap3.raf'),'b')
+    plot(a.get('f_x_best',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.','howBest','laptime'),'k--')
+    
