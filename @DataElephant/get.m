@@ -173,24 +173,16 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    [r,id_cum,f,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
+    [r,f,id_cum,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
     
     if nargout == 0 || nargout == 1
         
-        [x,y,fn,fv] = obj.getY(r,names_stripped,f,{},{},1); %#ok<ASGLU>
-        
-        y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
-        
-        if strcmp(names_raw{1},names_raw{2})
-            x           = reshape(1:numel(y),size(y));
-        else
-            x           = eval(strrep(names_raw{1},names_stripped{1},'x'));
-        end
-        
-        
+        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,f,{},{},1);
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 
     t_totalGetTime  = toc(t_getStart);
-    fprintf('Done. This get() call took %1.3f s, of which %1.3f s was inside steps calculating results. Overhead = %1.1f%%.',t_totalGetTime,obj.getTime,100*(1-obj.getTime/t_totalGetTime));
+    if obj.verbose
+        fprintf('Done. This get() call took %1.3f s, of which %1.3f s was inside steps calculating results. Overhead = %1.1f%%.',t_totalGetTime,obj.getTime,100*(1-obj.getTime/t_totalGetTime));
+    end
 end

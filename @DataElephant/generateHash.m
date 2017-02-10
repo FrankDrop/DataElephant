@@ -77,12 +77,19 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
                 id(uu,:) = [thislastcommon CalcMD5(prehash(:,:,uu),'char','Dec')];
             end
         elseif stepnr == functionalStartAt
-            assert(size(id_req_s,1) == 1);
+            if stepnr > 1
+                assert(size(id_req_s,1) == 1);
+            else
+                assert(size(id_req_s,1) == 0);
+            end
             
-            id                          = -1*ones(nr_func,size(id_req_s,2)+16);
-            prevhash                    = id_req_s(:,(end-obj.hashlength+1):end);
-            prehash(2*n_fields+3,:,:)   = repmat(prevhash.',1,nr_func);
-
+            id                              = -1*ones(nr_func,size(id_req_s,2)+16);
+            
+            if stepnr > 1
+                prevhash                    = id_req_s(:,(end-obj.hashlength+1):end);
+                prehash(2*n_fields+3,:,:)   = repmat(prevhash.',1,nr_func);
+            end
+            
             for uu=1:nr_func
                 id(uu,:) = [id_req_s CalcMD5(prehash(:,:,uu),'char','Dec')];
             end

@@ -1,4 +1,4 @@
-function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
+function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
 
     if obj.verbose
         fprintf('%sgetSingleResult(''%s'', z_cum, z_step, startAtStep=%i, stopAtStep=%i, lastStepInSequence=%i, r, id_cum=''%s'', returnMultiple=%s, functional=''%s''); @ %s\n',...
@@ -336,12 +336,13 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 % the r object.
                 
                 r_prev = r;
+                f_prev = f;
 
                 new_output_fields = obj.steps(oo).output;
                 for bb=1:length(new_output_fields)
                     r.(new_output_fields{bb})   = cell(size(id_req_s{oo+1},1),1);
                 end
-                fnc_output_fields = [fnc_output_fields new_output_fields]; %#ok<AGROW>
+                fnc_output_fields = [fnc_output_fields; new_output_fields]; %#ok<AGROW>
 
                 if collectDataForIdx(oo) > 0
                     obj.pverbose('%sGetting just one (#%i: %s) of %i possible previous results at %i (%s) from memory or HDD.\n',sprintf(repmat('\t',1,oo)),collectDataForIdx(oo),...
@@ -456,7 +457,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                                 end
                             end
 
-                            r_i         = obj.getIndividual(r_prev,fnc_output_fields,t_field,uu,size(id_req_s{oo+1},1));
+                            r_i         = obj.getIndividual(r_prev,f_prev,fnc_output_fields,t_field,uu,size(id_req_s{oo+1},1));
                             
                             % After we've taken a decision, we assume all
                             % the new data to be truely new. However, if
@@ -560,7 +561,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                 yyy                     = oo;
                 foundDecision           = false;
                 while ~foundDecision
-                    decide_output_fields    = [decide_output_fields obj.steps(yyy).output]; %#ok<AGROW>
+                    decide_output_fields    = [decide_output_fields; obj.steps(yyy).output]; %#ok<AGROW>
                     foundDecision           = any(strcmp(obj.steps(oo).decide,obj.steps(yyy).input)) || any(strcmp(obj.steps(oo).decide,obj.steps(yyy).optional));
                     yyy = yyy-1;
                 end
@@ -613,8 +614,8 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                         
                         [dec_o{uu},z_dec_o{uu}] = calcNewDecision(obj,z_cum_f,z_step_f,r,id_req_s{oo+1}(uu,:),id_fast_s{oo+1}(uu,:),id_req_s{oo},oo,lastStepInSequence);
                         
-                        t_dec_idx   = find(all((id_req_s{oo} - repmat(dec_o{uu},size(id_req_s{oo},1),1)) == 0,2));
-                        r_o{uu}     = obj.getIndividual(r, fieldnames(r), obj.steps(oo).decide, t_dec_idx, size(id_req_s{oo},1)); %#ok<FNDSB>
+                        t_dec_idx           = find(all((id_req_s{oo} - repmat(dec_o{uu},size(id_req_s{oo},1),1)) == 0,2));
+                        [r_o{uu},~]         = obj.getIndividual(r, f, fieldnames(r), obj.steps(oo).decide, t_dec_idx, size(id_req_s{oo},1)); %#ok<FNDSB>
 
                         if obj.verbose && uncalculatedResults > uncalculatedResultsWithCounter
                             calculatedResults = calculatedResults + 1;
@@ -666,7 +667,7 @@ function [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,start
                     fprintf('%sWe need to take a decision at %i (%s) : %s / F:%s.\n',sprintf(repmat('\t',1,oo)),oo,obj.steps(oo).name,hexhash(obj,id_req_s{oo+1}),hexhash(obj,id_fast_s{oo+1}));
                 end
 
-                [r,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,z_cum{oo},z_step{oo},r,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
+                [r,f,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,z_cum{oo},z_step{oo},r,f,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
 
                 for nn=1:length(z_cum)
                     if isfield(z_cum{nn},(obj.steps(oo).decide))

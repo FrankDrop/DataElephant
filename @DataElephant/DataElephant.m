@@ -1,5 +1,9 @@
 classdef DataElephant < handle
     
+    properties (Access = public)
+        verbose
+    end
+        
     properties (Access = private)
         
         % Storage for data
@@ -46,7 +50,7 @@ classdef DataElephant < handle
         load_old
         load_really_old
         savememory
-        verbose
+%         verbose
         fileverbose
         deepverbose
         funcverbose
@@ -90,14 +94,18 @@ classdef DataElephant < handle
         getTime
     end
     
+    methods(Static, Access = public)
+        varargout               = splitOutput(out);
+    end
+    
     methods(Static, Access = private)
         fldr                    = tidyfoldername(fldr);
         mssg                    = addPort(mssg,port);
         s                       = createLink(n);
         z                       = args(varargin);
-        varargout               = splitOutput(out);
+        
         [answer,id,filename]    = readMessage(mssg);
-        r_i                     = getIndividual(r_i,fields,fnc,idx,n_choices);
+        [r_i,f_i]               = getIndividual(r_i,f_i,fields,fnc,idx,n_choices);
         r                       = addIndividual(r,r_i,uu);
         
     end
@@ -162,13 +170,13 @@ classdef DataElephant < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,id_cum,f,z_cum,z_step] =          getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,f,id_cum,minStep);
-        [r,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep);
+        [r,f,id_cum,z_cum,z_step] =            getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,f,id_cum,minStep);
+        [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
 
                             r_n =   fetchStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
                             r_n = calcNewStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence,checkOutputs);
         
-        [r_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
+        [r_t,f_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,f,hash,fasthash,decision_hash,step,lastStepInSequence);
         [r,decision,z_dec]      = calcNewDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
         
         id = generateHash(obj,z_cum,z_step,stepnr,id_req_s,         decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
@@ -210,6 +218,6 @@ classdef DataElephant < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
-        [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll);
+        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll);
     end
 end

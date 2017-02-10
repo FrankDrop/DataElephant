@@ -1,4 +1,4 @@
-function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,f,id_cum,minStep)
+function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,f,id_cum,minStep)
 
     fnc             = {};
     fnc_step        = [];
@@ -82,7 +82,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
         
         if isempty(dec) && length(fnc) == 1
             if obj.verbose
-                fprintf('%sWe need results as a function of one functional only (%s).\n',sprintf(repmat('\t',1,startAtStep)),sprintf('%s, ',fnc{:}));
+                fprintf('%sWe need results as a function of one functional only (%s\b\b).\n',sprintf(repmat('\t',1,startAtStep)),sprintf('%s, ',fnc{:}));
             end
             simpleFunctional    = true;
         end
@@ -283,7 +283,13 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
             r_f             = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             
             for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
-                r_f{rr}.(name)   = r_s.(name){rr};
+                if iscell(name)
+                    for ii=1:length(name)
+                        r_f{rr}.(name{ii})   = r_s.(name{ii}){rr};
+                    end
+                else
+                    r_f{rr}.(name)   = r_s.(name){rr};
+                end
             end
         else
             obj.pverbose('%sGetting results as a function of the complex functional %s.\n',sprintf(repmat('\t',1,singleUntilStep)),getAsFuncOf);
@@ -313,7 +319,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
                         z_step_f{uu}.(getAsFuncOf) = z_cum{stopFncAtStep}.(getAsFuncOf){ii};
                     end
                 end
-                [r_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,id_cum);                
+                [r_f{ii},f_f{ii},id_cum_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,f,id_cum,minStep);                
             end
             f.sub     = f_f{1};
         end
@@ -340,7 +346,7 @@ function [r,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
                     error('The requested output (%s) is not part of variable r. Which is weird!',name);
                 end
             end
-        end 
-        r   = rn;
+            r   = rn;
+        end
     end
 end

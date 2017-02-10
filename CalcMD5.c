@@ -51,7 +51,7 @@
 // Compile with:
 //   mex -O CalcMD5.c
 // On Linux the C99 comments must be considered (thanks Sebastiaan Breedveld):
-//   mex -O CFLAGS="\$CFLAGS -std=C99" CalcMD5.c
+//   mex -O CFLAGS="\$CFLAGS -std=c99" CalcMD5.c
 //
 // Tested: Matlab 6.5, 7.7, 7.8, WinXP, [UnitTest]
 //         Compiler: BCC5.5, LCC2.4/3.8, OpenWatcom 1.8

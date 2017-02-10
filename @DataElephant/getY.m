@@ -1,19 +1,27 @@
-function [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll)
-
-    
+function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
 
     if isempty(f) % f contains the functional. if it is empty, we only have one result.
         
-        if length(name) == 1
-            x   = r.(name{1});
-            y   = r.(name{1});
+        if length(names_stripped) == 1
+            error('I don''t think we can end up here anymore...');
+            x   = r.(names_stripped{1});
+            y   = r.(names_stripped{1});            
         else
-            x   = r.(name{1});
-            y   = r.(name{2});
+            x   = r.(names_stripped{1});
+            y   = r.(names_stripped{2});
+            
+            if ~(strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
+                if strcmp(names_raw{1},names_raw{2})
+                    x           = reshape(1:numel(y),size(y));
+                else
+                    x           = eval(strrep(names_raw{1},names_stripped{1},'x'));
+                end
+
+                y   = eval(strrep(names_raw{2},names_stripped{2},'y'));
+            end
         end
         
     else
-        error('This code was not updated yet.')
         fn{ll}  = f.this.name;
         fv{ll}  = f.this.value;
 
@@ -23,32 +31,49 @@ function [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll)
             if iscell(r{1})
                 % Why would this be the case?
                 
-                y = cell([length(f.this.value) size(r{1}.(name).y)]);
-
-                if isfield(r{1}.(name),'x')
-                    x   = r{1}.(name).x;
+                y   = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);
+                
+                if strcmp(names_raw{1},names_raw{2})
+                    x   = reshape(1:numel(r{1}.(names_stripped{1})),size(r{1}.(names_stripped{2})));
                 else
-                    x   = zeros(size(r{1}.(name).y));
+                    x   = r{1}.(names_stripped{1});
                 end
 
-                for oo=1:length(f.this.value)
-                    y{oo,:}     = r{oo}.(name).y{:};
+                if (strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
+                    for oo=1:length(f.this.value)
+                        y{oo,:}     = r{oo}.(names_stripped){:};
+                    end
+                else
+                    for oo=1:length(f.this.value)
+                        y           = r{oo}.(names_stripped{2}); %#ok<NASGU>
+                        y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
+                        y{oo,:}     = y{:};
+                    end
                 end
             else
-                if iscell(r{1}.(name).y)
-                    y = cell([length(f.this.value) size(r{1}.(name).y)]);
+                if iscell(r{1}.(names_stripped{2}))
+                    y = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);
                 else
-                    y = zeros([length(f.this.value) size(r{1}.(name).y)]);
+                    y = zeros([length(f.this.value) size(r{1}.(names_stripped{2}))]);
                 end
 
-                if isfield(r{1}.(name),'x')
-                    x   = r{1}.(name).x;
+                if strcmp(names_raw{1},names_raw{2})
+                    x   = reshape(1:numel(r{1}.(names_stripped{1})), size(r{1}.(names_stripped{1})));
                 else
-                    x   = zeros(size(r{1}.(name).y));
+                    x   = r{1}.(names_stripped{1});
                 end
-
-                for oo=1:length(f.this.value)
-                    y(oo,:)     = r{oo}.(name).y(:);
+%                 x   = r{1}.(names_stripped{1});
+                
+                if (strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
+                    for oo=1:length(f.this.value)
+                        y(oo,:)     = r{oo}.(names_stripped{2})(:);
+                    end
+                else
+                    for oo=1:length(f.this.value)
+                        y           = r{oo}.(names_stripped{2}); %#ok<NASGU>
+                        y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
+                        y(oo,:)     = y(:);
+                    end
                 end
             end
         else
@@ -58,7 +83,7 @@ function [x,y,fn,fv] = getY(obj,r,name,f,fn,fv,ll)
             f_i = f.sub;
             y_i = cell(length(f.this.value),1);
             for oo=1:length(f.this.value)
-                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},name,f_i,fn,fv,ll+1);
+                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},names_stripped,names_raw,f_i,fn,fv,ll+1);
                 y_i{oo}             = y_oo;
             end
             

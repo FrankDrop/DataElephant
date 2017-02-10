@@ -50,7 +50,7 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
             if ~isempty(obj.process.branches)
                 % Then in the alternative branches
                 for oo=1:length(obj.process.branches)
-                    assert(length(obj.process.branches) > 1);
+                    assert(length(obj.process.branches{oo}) > 1,'A branch cannot consist of just one step.');
                     assert(any(strcmp(func2str(obj.process.branches{oo}{1}),cellfun(@(x)func2str(x),obj.process.steps,'UniformOutput',false))),...
                         sprintf('The branch starting with step %s is invalid, because this step is not part of the main branch.',obj.createLink(func2str(obj.process.branches{oo}{1}))));
                     
@@ -61,7 +61,7 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
                         stp = obj.process.branches{oo}{uu}();
                         if any(strcmp(names,obj.splitOutput(stp.output)))
                             if foundBranch
-                                error('Branch #%i also provides the result %s.',uu,names)
+                                error('Branch #%i also provides the result %s.',oo,names)
                             end
                             % obj.pverbose('To obtain result %s, we need to follow alternative branch #%i.\n',name,oo)
                             
@@ -69,7 +69,7 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
                             newBranch       = [obj.process.steps(1:branchStartsAt-1) obj.process.branches{oo}];
                             foundBranch     = true;
                             branchNumber    = oo;
-                            stepNumber      = branchStartsAt+uu;
+                            stepNumber      = branchStartsAt+uu-1;
                         end
                     end
                 end
