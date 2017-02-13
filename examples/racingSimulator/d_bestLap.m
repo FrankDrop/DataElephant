@@ -23,6 +23,8 @@ function step = d_bestLap()
                 [~,idx]     = min([r.f_y_max{:}]);
             case 'f_z'
                 [~,idx]     = min([r.f_z_max{:}]);
+            otherwise
+                error('This step cannot decide based on %s.',z.howBest)
         end
     end
 end

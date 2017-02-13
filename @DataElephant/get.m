@@ -188,10 +188,11 @@ function [r,id_cum] = get(obj,name,varargin)
             end
         end
     end
-    
-    [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
-    
-    if nargout == 0 || nargout == 1
+            
+    if nargout == 0
+        [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,true);
+    elseif nargout == 1        
+        [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,false);
         
         [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,f,{},{},1);
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);

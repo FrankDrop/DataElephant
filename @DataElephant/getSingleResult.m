@@ -45,6 +45,7 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                 functionalStartAt       = oo;
                 decisionTakenAt         = oo;
                 decisionDecidesOver{1}  = obj.steps(oo).decide;
+                decideOverRange{1}      = z_cum{oo}.(obj.steps(oo).decide);
                 functionalRange         = z_cum{oo}.(functional);
                 foundDecision           = true;
             end
@@ -270,6 +271,24 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
         
         id_req_s = nextHash(obj,z_cum,z_step,oo,id_req_s,id_dec_s,functional,functionalStartAt,decisionStartAt,decisionTakenAt,functionalRange,decisionDecidesOver);
         
+        if size(id_req_s{oo+1},1) > 1
+            if ~isempty(decisionStartAt)
+                if oo >= decisionStartAt && oo < decisionTakenAt
+                    t_field     = decisionDecidesOver{sum(oo >= decisionStartAt)};
+                    t_values    = z_cum{decisionStartAt}.(t_field);
+                    n_values    = length(t_values);
+                elseif oo == decisionTakenAt
+                    t_field     = functional;
+                    t_values    = z_cum{oo}.(t_field);
+                    n_values    = length(t_values);
+                end
+            else
+                t_field     = functional;
+                t_values    = z_cum{oo}.(t_field);
+                n_values    = length(t_values);
+            end
+        end
+        
         if obj.steps(oo).type
             
             %%%%%%%%%%%%%%%%%
@@ -281,54 +300,54 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                 % cell... but it might not be an argument in this
                 % step.
 
-                if isstruct(z_step{oo})
-                    t_fields    = fieldnames(z_step{oo});
-                    cell_fields = find(cellfun(@(x) iscell(z_step{oo}.(x)),t_fields));
-                else
-                    t_fields    = {};
-                    cell_fields = [];
-                end
+%                 if isstruct(z_step{oo})
+%                     t_fields    = fieldnames(z_step{oo});
+%                     cell_fields = find(cellfun(@(x) iscell(z_step{oo}.(x)),t_fields));
+%                 else
+%                     t_fields    = {};
+%                     cell_fields = [];
+%                 end
 
-                if length(cell_fields) > 1
-                    error('More than one field is a cell, but that is not possible.');
-                elseif length(cell_fields) == 1
-                    t_field     = t_fields{cell_fields};
-                    
-                    t_values    = z_step{oo}.(t_field);
-                    n_values    = length(t_values);
-                    if n_values ~= size(id_req_s{oo+1},1)
-                        error('The amount of hashes to get is not equal to the amount of variables of the functional.');
-                    end
-                elseif isempty(cell_fields)
-                    % We might get away with just leaving the
-                    % previous values unaltered?
-                    % t_field, t_values and n_values are the same
-                    % as in the previous iteration of this
-                    % for-loop.
-                    if ~returnMultiple
-                        % If we are not required to return multiple
-                        % results, we can only end up here if we need to
-                        % take a decision at some point.
-                        decisionStillToCome = false;
-                        for jjj=oo:singleUntilStep
-                            if ~obj.steps(jjj).type
-                                decisionStillToCome = true;
-                                continue;
-                            end
-                        end
-                        if ~decisionStillToCome
-                            error('We ended up here but there is no decision left to take. This is not right.');
-                        end
-                    else
-                        t_field     = functional;
-                        t_values    = z_cum{oo}.(t_field);
-                        n_values    = length(t_values);
-                    end
-                    
-                    if n_values ~= size(id_req_s{oo+1},1)
-                        error('The amount of hashes to get is not equal to the amount of variables of the functional.');
-                    end
-                end
+%                 if length(cell_fields) > 1
+%                     error('More than one field is a cell, but that is not possible.');
+%                 elseif length(cell_fields) == 1
+%                     t_field     = t_fields{cell_fields};
+%                     
+%                     t_values    = z_step{oo}.(t_field);
+%                     n_values    = length(t_values);
+%                     if n_values ~= size(id_req_s{oo+1},1)
+%                         error('The amount of hashes to get is not equal to the amount of variables of the functional.');
+%                     end
+%                 elseif isempty(cell_fields)
+%                     % We might get away with just leaving the
+%                     % previous values unaltered?
+%                     % t_field, t_values and n_values are the same
+%                     % as in the previous iteration of this
+%                     % for-loop.
+%                     if ~returnMultiple
+%                         % If we are not required to return multiple
+%                         % results, we can only end up here if we need to
+%                         % take a decision at some point.
+%                         decisionStillToCome = false;
+%                         for jjj=oo:singleUntilStep
+%                             if ~obj.steps(jjj).type
+%                                 decisionStillToCome = true;
+%                                 continue;
+%                             end
+%                         end
+%                         if ~decisionStillToCome
+%                             error('We ended up here but there is no decision left to take. This is not right.');
+%                         end
+%                     else
+%                         t_field     = functional;
+%                         t_values    = z_cum{oo}.(t_field);
+%                         n_values    = length(t_values);
+%                     end
+%                     
+%                     if n_values ~= size(id_req_s{oo+1},1)
+%                         error('The amount of hashes to get is not equal to the amount of variables of the functional.');
+%                     end
+%                 end
                 
                 % Save the r object into r_prev to avoid confusion by the
                 % current step. For example, if the current step checks whether
@@ -559,8 +578,8 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
 
                         for bb=1:length(new_output_fields)
                             if isfield(r_o{uu},new_output_fields{bb})
-                                r.(new_output_fields{bb}){uu}   = r_o{uu}.(new_output_fields{bb});
-                                rf.(new_output_fields{bb}).f     = t_field;
+                                r.(new_output_fields{bb}){uu}       = r_o{uu}.(new_output_fields{bb});
+                                rf.(new_output_fields{bb}).f        = t_field;
                             end
                         end
                     end
@@ -585,54 +604,57 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
             
             
             if size(id_req_s{oo+1},1) > 1                
-                if isstruct(z_step{oo})
-                    t_fields    = fieldnames(z_step{oo});
-                    cell_fields = find(cellfun(@(x) iscell(z_step{oo}.(x)),t_fields));
-                else
-                    t_fields    = {};
-                    cell_fields = [];
-                end
-
-                if length(cell_fields) > 1
-                    error('More than one field is a cell, but that is not possible.');
-                elseif length(cell_fields) == 1
-                    t_field     = t_fields{cell_fields};
-                    
-                    t_values    = z_step{oo}.(t_field);
-                    n_values    = length(t_values);
-                    if n_values ~= size(id_req_s{oo+1},1)
-                        error('The amount of hashes to get is not equal to the amount of variables of the functional.');
-                    end
-                elseif isempty(cell_fields)
-                    % We might get away with just leaving the
-                    % previous values unaltered?
-                    % t_field, t_values and n_values are the same
-                    % as in the previous iteration of this
-                    % for-loop.
-                    if ~returnMultiple
-                        % If we are not required to return multiple
-                        % results, we can only end up here if we need to
-                        % take a decision at some point.
-                        decisionStillToCome = false;
-                        for jjj=oo:singleUntilStep
-                            if ~obj.steps(jjj).type
-                                decisionStillToCome = true;
-                                continue;
-                            end
-                        end
-                        if ~decisionStillToCome
-                            error('We ended up here but there is no decision left to take. This is not right.');
-                        end
-                    else
-                        t_field     = functional;
-                        t_values    = z_cum{oo}.(t_field);
-                        n_values    = length(t_values);
-                    end
-                    
-                    if n_values ~= size(id_req_s{oo+1},1)
-                        error('The amount of hashes to get is not equal to the amount of variables of the functional.');
-                    end
-                end
+%                 if isstruct(z_step{oo})
+%                     t_fields    = fieldnames(z_step{oo});
+%                     cell_fields = find(cellfun(@(x) iscell(z_step{oo}.(x)),t_fields));
+%                 else
+%                     t_fields    = {};
+%                     cell_fields = [];
+%                 end
+% 
+%                 
+%                 
+%                 if length(cell_fields) > 1
+%                     error('More than one field is a cell, but that is not possible.');
+%                 elseif length(cell_fields) == 1
+%                     t_field     = t_fields{cell_fields};
+%                     
+%                     t_values    = z_step{oo}.(t_field);
+%                     n_values    = length(t_values);
+%                     if n_values ~= size(id_req_s{oo+1},1)
+%                         error('The amount of hashes to get is not equal to the amount of variables of the functional.');
+%                     end
+%                 elseif isempty(cell_fields)
+%                     % We might get away with just leaving the
+%                     % previous values unaltered?
+%                     % t_field, t_values and n_values are the same
+%                     % as in the previous iteration of this
+%                     % for-loop.
+%                     if ~returnMultiple
+%                         % If we are not required to return multiple
+%                         % results, we can only end up here if we need to
+%                         % take a decision at some point.
+%                         decisionStillToCome = false;
+%                         for jjj=oo:singleUntilStep
+%                             if ~obj.steps(jjj).type
+%                                 decisionStillToCome = true;
+%                                 continue;
+%                             end
+%                         end
+%                         if ~decisionStillToCome
+%                             error('We ended up here but there is no decision left to take. This is not right.');
+%                         end
+%                     else
+%                         t_field     = functional;
+%                         t_values    = z_cum{oo}.(t_field);
+%                         n_values    = length(t_values);
+%                     end
+%                     
+%                     if n_values ~= size(id_req_s{oo+1},1)
+%                         error('The amount of hashes to get is not equal to the amount of variables of the functional.');
+%                     end
+%                 end
+                
                 
                 decide_output_fields    = [];
                 yyy                     = oo;
@@ -644,7 +666,7 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                 end
                 
                 r_n         = r;
-                f_n         = rf;
+                rf_n        = rf;
                 z_cum_n     = z_cum;
                 z_step_n    = z_step;
                 
@@ -705,7 +727,7 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                     for bb=1:length(decide_output_fields)
                         if isfield(r_o{uu},decide_output_fields{bb})
                             r_n.(decide_output_fields{bb}){uu}      = r_o{uu}.(decide_output_fields{bb});
-                            r_f.(decide_output_fields{bb}).f        = t_field;
+                            rf_n.(decide_output_fields{bb}).f       = t_field;
                         end
                     end
                     
@@ -730,7 +752,7 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                 z_cum           = z_cum_n;
                 z_step          = z_step_n;
                 r               = r_n;
-                rf               = r_f;
+                rf              = rf_n;
                 
                 decidedOver     = obj.steps(oo).decide;
                 
@@ -793,7 +815,7 @@ function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,st
                 if isfield(r,name{oo})
                     rn.(name{oo})   = r.(name{oo});
                 else
-                    error('The requested output (%s) is not part of variable r. Which is weird!',name{oo});
+%                     error('The requested output (%s) is not part of variable r. Which is weird!',name{oo});
                 end
             end
             r   = rn;

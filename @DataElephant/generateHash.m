@@ -68,10 +68,12 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
         if ~t_step.type % decision
             % We need to combine the prior hashes into the number of
             % decisions to be taken again
-            id                          = -1*ones(nr_func,size(id_req_s,2));
+            thislastcommon              = lastCommonHash(obj,id_req_s);
+            
+            id                          = -1*ones(nr_func,length(thislastcommon) + obj.hashlength);
             prevhash                    = CalcMD5(id_req_s(:,(end-obj.hashlength+1):end),'char','Dec');
             prehash(2*n_fields+3,:,:)   = repmat(prevhash.',1,nr_func);
-            thislastcommon              = lastCommonHash(obj,id_req_s);
+            
 
             for uu=1:nr_func
                 id(uu,:) = [thislastcommon CalcMD5(prehash(:,:,uu),'char','Dec')];

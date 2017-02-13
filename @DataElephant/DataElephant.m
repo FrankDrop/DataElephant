@@ -170,7 +170,7 @@ classdef DataElephant < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,rf,id_cum,f,z_cum,z_step] =            getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,rf,id_cum,minStep);
+        [r,rf,id_cum,f,z_cum,z_step] =            getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,rf,id_cum,minStep,drawStructure);
         [r,rf,id_cum_s,z_cum,z_step] =   getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,rf,id_cum,returnMultiple,functional,minStep)
 
                             r_n =   fetchStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);

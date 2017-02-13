@@ -1,0 +1,6 @@
+function p = p_twostagemethodoptim()
+    p.name      = mfilename;
+    p.steps     = {@s_prepareModel, @s_inputSignals, @s_simulateModel, ...
+                    @s_prepareDataForStageOne, @s_arx_sim_stageone, @d_mbic_stageone, @s_best_arx_model_stageone, ...
+                    @s_prepareDataForStageTwo, @s_arx_sim_stagetwo, @d_mbic_stagetwo, @s_best_arx_model_stagetwo, @s_arx_vaf_stagetwo};
+end

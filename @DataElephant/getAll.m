@@ -1,7 +1,8 @@
-function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,rf,id_cum,minStep)
+function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,rf,id_cum,minStep,drawStructure)
 
     fnc             = {};
     fnc_step        = [];
+    fnc_N           = [];
     dec             = {};
     dec_step_start  = [];
     dec_step_stop   = [];
@@ -36,7 +37,9 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                 if iscell(z_step{oo}.(t_inputs{ii}))
                     fnc{ll}         = t_inputs{ii}; %#ok<AGROW>
                     fnc_step(ll)    = oo; %#ok<AGROW>
+                    fnc_N(ll)       = length(z_step{oo}.(t_inputs{ii}));
                     ll              = ll+1;
+                    
                 end
             end
         end
@@ -192,6 +195,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                     % code decide what functional to start first.
                     fnc_step(strcmp(fnc_dec{1},fnc))    = []; %#ok<AGROW>
                     fnc(strcmp(fnc_dec{1},fnc))         = []; %#ok<AGROW>
+                    fnc_N(strcmp(fnc_dec{1},fnc))       = []; %#ok<AGROW>
                     fnc_step                            = fnc_step - (min(fnc_step) - firstStepWithFuncs);
                     dec(di)                             = []; %#ok<AGROW>
                     dec_step_start(di)                  = []; %#ok<AGROW>
@@ -205,6 +209,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                     
                     fnc_step(strcmp(fnc_dec{1},fnc))    = []; %#ok<AGROW>
                     fnc(strcmp(fnc_dec{1},fnc))         = []; %#ok<AGROW>
+                    fnc_N(strcmp(fnc_dec{1},fnc))       = []; %#ok<AGROW>
                     fnc_step                            = fnc_step - (min(fnc_step) - firstStepWithFuncs);
                     dec(di)                             = []; %#ok<AGROW>
                     dec_step_start(di)                  = []; %#ok<AGROW>
@@ -223,6 +228,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                     obj.pverbose('%sThe decision %s closes before all other functions open, so we can remove this one from the list.\n',sprintf(repmat('\t',1,startAtStep)),fnc_dec{1});
                     fnc_step(strcmp(fnc_dec{1},fnc))    = []; %#ok<AGROW>
                     fnc(strcmp(fnc_dec{1},fnc))         = []; %#ok<AGROW>
+                    fnc_N(strcmp(fnc_dec{1},fnc))       = []; %#ok<AGROW>
                     dec(di)                             = []; %#ok<AGROW>
                     dec_step_start(di)                  = []; %#ok<AGROW>
                     dec_step_stop(di)                   = []; %#ok<AGROW>
@@ -256,6 +262,44 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
     end
     
     
+%%
+
+if drawStructure
+    figure
+    boxHeight   = 0.5;
+    boxWidth    = 0.5;
+    if singleUntilStep >= startAtStep
+        n_steps     = length(obj.steps);
+        for oo=1:n_steps
+            if ~isempty(dec_step_start) && any(oo >= dec_step_start && oo < dec_step_stop)
+                % We are in between a decision
+                n_options   = fnc_N(oo >= dec_step_start && oo < dec_step_stop);
+                nr_func     = find(oo >= dec_step_start && oo < dec_step_stop);
+            else
+                n_options   = 1;
+            end
+            
+            
+            for uu=1:n_options
+                aaa=annotation('textbox',[(oo-1)/n_steps (uu-1)/n_options*1/3+1/3 1/n_steps 1/3/n_options],'String',obj.steps(oo).name,'Interpreter','none','BackgroundColor',[0.5 0.5 1])
+            end
+            
+            if isstruct(z_step{oo})
+                stepInputFieldnames = fieldnames(z_step{oo});
+                inputText   = sprintf('%s\n',stepInputFieldnames{:});
+                
+                annotation('textbox',[(oo-1)/n_steps 2/3 1/n_steps 1/3],'String',inputText,'Interpreter','none','BackgroundColor',[0.5 1 0.5])
+                
+            end
+            
+            if ~isempty(obj.steps(oo).output)
+                outputText   = sprintf('%s, ',obj.steps(oo).output{:});
+                annotation('textbox',[(oo-1)/n_steps 0 1/n_steps 1/3],'String',outputText,'Interpreter','none','BackgroundColor',[1 0.5 0.5])
+            end
+        end
+    end
+end
+
 %% The single part
 % This is the part that is done before any functional starts. This data is
 % equal for all functionals in subsequent steps.
@@ -273,7 +317,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
         f.this.value    = z_cum{stopFncAtStep}.(getAsFuncOf);
 
         if simpleFunctional || getDecisionAsFncOf
-            
+            obj.pverbose('%sGetting results as a function of the functional %s.\n',sprintf(repmat('\t',1,singleUntilStep)),getAsFuncOf);
             [r_s,~,id_cum_f,~,~] = getSingleResult(obj,name,z_cum,z_step,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,true,getAsFuncOf,minStep);
             
             f.sub     = '';
@@ -287,11 +331,9 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                 if iscell(name)
                     for ii=1:length(name)
                         r_f{rr}.(name{ii})      = r_s.(name{ii}){rr};
-%                         rf_f{rr}.(name{ii})     = rf_s.(name{ii}){rr};
                     end
                 else
                     r_f{rr}.(name)      = r_s.(name){rr};
-%                     rf_f{rr}.(name)     = rf_s.(name){rr};
                 end
             end
         else
@@ -323,7 +365,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
                         z_step_f{uu}.(getAsFuncOf) = z_cum{stopFncAtStep}.(getAsFuncOf){ii};
                     end
                 end
-                [r_f{ii},rf_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,minStep);                
+                [r_f{ii},rf_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,minStep,drawStructure);
             end
             f.sub     = f_f{1};
         end

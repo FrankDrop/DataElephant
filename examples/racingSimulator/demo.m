@@ -6,11 +6,22 @@ clear all
 
 a   = DataElephant(@p_racingSimulator);
 
-
+% return
 %%
 
 z.raf_path  = 'RAF/BlackwoodWR.raf';
 z.f_filt    = 3;
+
+figure
+    plot(a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').ha('raf_path'))
+
+
+a.get('f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf','RAF/lap3.raf'}.','howBest',{'f_x','f_z'}.')
+a.get('f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf','RAF/lap3.raf','RAF/lap4.raf'}.','howBest',{'f_x','f_z'}.')
+return
+
+%%
+
 
 %%
 
@@ -62,15 +73,24 @@ a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').mo('raf_path')
 
 
+% TODO: Solve this error
+% a.get('f_x_best',z,'raf_path','RAF/BlackwoodWR.raf','howBest','laptime')
+
 %%
 close all
 
-figure
-    plot(a.get('Di;f_x',z,'raf_path','RAF/BlackwoodWR.raf'),'r')
-    plot(a.get('Di;f_x',z,'raf_path','RAF/lap2.raf'),'g-.')
-    plot(a.get('Di;f_x',z,'raf_path','RAF/lap3.raf'),'b')
-    plot(a.get('Di;f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf'}.','howBest','laptime'),'k--')
+% figure
+%     plot(a.get('Di;f_x',z,'raf_path','RAF/BlackwoodWR.raf'),'r')
+%     plot(a.get('Di;f_x',z,'raf_path','RAF/lap2.raf'),'g-.')
+%     plot(a.get('Di;f_x',z,'raf_path','RAF/lap3.raf'),'b')
+%     plot(a.get('Di;f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf'}.','howBest','laptime'),'k--')
 
 %%
+close all
 
-a.get('Di;f_x',z,'raf_path','RAF/BlackwoodWR.raf')
+%%
+% return
+% %%
+% clc
+a.get('f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf','RAF/lap3.raf'}.','howBest',{'f_x','f_z'}.')
+
