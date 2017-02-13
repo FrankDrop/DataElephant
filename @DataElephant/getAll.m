@@ -265,12 +265,13 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
 %%
 
 if drawStructure
+%     fprintf('Draaaaaaaaaaaaaaaaaaaaaaaaawing.\n')
     figure
     boxHeight   = 0.5;
     boxWidth    = 0.5;
     if singleUntilStep >= startAtStep
-        n_steps     = length(obj.steps);
-        for oo=1:n_steps
+        n_steps     = stopAtStep;
+        for oo=1:stopAtStep
             if ~isempty(dec_step_start) && any(oo >= dec_step_start && oo < dec_step_stop)
                 % We are in between a decision
                 n_options   = fnc_N(oo >= dec_step_start && oo < dec_step_stop);
@@ -279,22 +280,23 @@ if drawStructure
                 n_options   = 1;
             end
             
+            n_options   = min([n_options 10]);
             
             for uu=1:n_options
-                aaa=annotation('textbox',[(oo-1)/n_steps (uu-1)/n_options*1/3+1/3 1/n_steps 1/3/n_options],'String',obj.steps(oo).name,'Interpreter','none','BackgroundColor',[0.5 0.5 1])
+                annotation('textbox',[(oo-1)/n_steps (uu-1)/n_options*1/3+1/3 1/n_steps 1/3/n_options],'String',obj.steps(oo).name,'Interpreter','none','BackgroundColor',[0.5 0.5 1]);
             end
             
             if isstruct(z_step{oo})
                 stepInputFieldnames = fieldnames(z_step{oo});
                 inputText   = sprintf('%s\n',stepInputFieldnames{:});
                 
-                annotation('textbox',[(oo-1)/n_steps 2/3 1/n_steps 1/3],'String',inputText,'Interpreter','none','BackgroundColor',[0.5 1 0.5])
+                annotation('textbox',[(oo-1)/n_steps 2/3 1/n_steps 1/3],'String',inputText,'Interpreter','none','BackgroundColor',[0.5 1 0.5]);
                 
             end
             
             if ~isempty(obj.steps(oo).output)
                 outputText   = sprintf('%s, ',obj.steps(oo).output{:});
-                annotation('textbox',[(oo-1)/n_steps 0 1/n_steps 1/3],'String',outputText,'Interpreter','none','BackgroundColor',[1 0.5 0.5])
+                annotation('textbox',[(oo-1)/n_steps 0 1/n_steps 1/3],'String',outputText,'Interpreter','none','BackgroundColor',[1 0.5 0.5]);
             end
         end
     end
@@ -365,7 +367,7 @@ end
                         z_step_f{uu}.(getAsFuncOf) = z_cum{stopFncAtStep}.(getAsFuncOf){ii};
                     end
                 end
-                [r_f{ii},rf_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,minStep,drawStructure);
+                [r_f{ii},rf_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,minStep,false);
             end
             f.sub     = f_f{1};
         end

@@ -4,7 +4,7 @@ clear all
 
 %%
 a   = DataElephant(@p_twostagemethod);
-b   = DataElephant(@s_frequency_response);
+% b   = DataElephant(@s_frequency_response);
 
 %%
 
@@ -64,9 +64,11 @@ z.ft                    = 'sdt ramp';
 z.NN                    = getNNcell(1:4,0:4,0:4,1:16,1:8);
 z.c                     = 3;
 
-a.get('nn_arx_best',z,'si',{2,4}.').sy
+close all
+clc
+a.get('nn_arx_best',z,'si',{2,4}.')
 
-% return
+return
 % a.get('nn_arx_best',z).sy
 % return
 %%
