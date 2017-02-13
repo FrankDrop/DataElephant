@@ -14,8 +14,6 @@ function r_n = fetchStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence)
         r_n = r_n{1};
         
         if isempty(r_n)
-            
-%             someNameOfThisStep  = obj.steps(stepnr).output{1}; % We have to request an output of this particular step, because z_cum contains the input arguments up to this step only.
             goodToGo = canCalcOnThisHost(obj,stepnr,z_cum,submittedBefore);
             
             if goodToGo == 1

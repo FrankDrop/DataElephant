@@ -170,14 +170,14 @@ classdef DataElephant < handle
         varargout = checkOrLoadFromDisk(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
         varargout = checkOrSelectByHash(obj,hash,fasthash,step,lastStepInSequence,lookForFasthash);
        
-        [r,f,id_cum,z_cum,z_step] =            getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,f,id_cum,minStep);
-        [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
+        [r,rf,id_cum,f,z_cum,z_step] =            getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,     lastStepInSequence,r,rf,id_cum,minStep);
+        [r,rf,id_cum_s,z_cum,z_step] =   getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,rf,id_cum,returnMultiple,functional,minStep)
 
                             r_n =   fetchStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence);
                             r_n = calcNewStep(    obj,z_cum,z_step,r,hash,step,lastStepInSequence,checkOutputs);
         
-        [r_t,f_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,f,hash,fasthash,decision_hash,step,lastStepInSequence);
-        [r,decision,z_dec]      = calcNewDecision(obj,z_cum,z_step,r,hash,fasthash,decision_hash,step,lastStepInSequence);
+        [r_t,rf_t,decision,z_dec]    =   fetchDecision(obj,z_cum,z_step,r,rf,hash,fasthash,decision_hash,step,lastStepInSequence);
+        [r,decision,z_dec]           = calcNewDecision(obj,z_cum,z_step,r,   hash,fasthash,decision_hash,step,lastStepInSequence);
         
         id = generateHash(obj,z_cum,z_step,stepnr,id_req_s,         decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);
         id = nextHash(    obj,z_cum,z_step,stepnr,id_req_s,id_dec_s,decisionFunctional,functionalStartAt,decisionStartAt,decisionTakenAt,decisionFunctionalRange,decisionDecidesOver);

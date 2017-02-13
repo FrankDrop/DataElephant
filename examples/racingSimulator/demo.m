@@ -57,17 +57,20 @@ a.get('laptime',z).y
 a.get('laptime',z,'raf_path','RAF/lap2.raf').y
 %%
 
-a.verbose = 0;
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').x
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').y
 a.get('laptime',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.').mo('raf_path')
 
 
 %%
+close all
 
 figure
-    plot(a.get('f_x',z,'raf_path','RAF/BlackwoodWR.raf'),'r')
-    plot(a.get('f_x',z,'raf_path','RAF/lap2.raf'),'g')
-    plot(a.get('f_x',z,'raf_path','RAF/lap3.raf'),'b')
-    plot(a.get('f_x_best',z,'raf_path',{'RAF/BlackwoodWR.raf','RAF/lap2.raf','RAF/lap3.raf'}.','howBest','laptime'),'k--')
-    
+    plot(a.get('Di;f_x',z,'raf_path','RAF/BlackwoodWR.raf'),'r')
+    plot(a.get('Di;f_x',z,'raf_path','RAF/lap2.raf'),'g-.')
+    plot(a.get('Di;f_x',z,'raf_path','RAF/lap3.raf'),'b')
+    plot(a.get('Di;f_x_best',z,'raf_path',{'RAF/lap2.raf','RAF/BlackwoodWR.raf'}.','howBest','laptime'),'k--')
+
+%%
+
+a.get('Di;f_x',z,'raf_path','RAF/BlackwoodWR.raf')

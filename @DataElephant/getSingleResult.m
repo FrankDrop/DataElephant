@@ -1,4 +1,4 @@
-function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,returnMultiple,functional,minStep)
+function [r,rf,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,rf,id_cum,returnMultiple,functional,minStep)
 
     if obj.verbose
         fprintf('%sgetSingleResult(''%s'', z_cum, z_step, startAtStep=%i, stopAtStep=%i, lastStepInSequence=%i, r, id_cum=''%s'', returnMultiple=%s, functional=''%s''); @ %s\n',...
@@ -22,7 +22,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
     
     z_cum_unaffected        = z_cum;    % The fast decision hashes should be calculated over the unaffected arguments.
     
-    collectDataForIdx       = -1*ones(singleUntilStep,1);
+    cDFI       = -1*ones(singleUntilStep,1);
     
     functionalStartAt       = lastStepInSequence+1;
     functionalRange         = [];
@@ -248,7 +248,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                     thisStartAt     = decisionStartAt(strcmp(decisionDecidesOver,obj.steps(oo).decide));
                     
                     decisionIdx = find(all((id_req_s{oo} - repmat(id_dec_s{oo+1},size(id_req_s{oo},1),1)) == 0,2));
-                    collectDataForIdx(thisStartAt:(oo-1))   = decisionIdx;
+                    cDFI(thisStartAt:(oo-1))   = decisionIdx;
                     obj.pverbose('%sDecision at step %i is present, we will decide for %s.\n',sprintf(repmat('\t',1,oo)),oo,hexhash(obj,id_dec_s{oo+1}));
                 else
                     obj.pverbose('%sDecision at step %i is not present.\n',sprintf(repmat('\t',1,oo)),oo);
@@ -335,8 +335,8 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                 % a certain result field it wants to add already exists in
                 % the r object.
                 
-                r_prev = r;
-                f_prev = f;
+                r_prev  = r;
+                rf_prev = rf;
 
                 new_output_fields = obj.steps(oo).output;
                 for bb=1:length(new_output_fields)
@@ -344,28 +344,105 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                 end
                 fnc_output_fields = [fnc_output_fields; new_output_fields]; %#ok<AGROW>
 
-                if collectDataForIdx(oo) > 0
-                    obj.pverbose('%sGetting just one (#%i: %s) of %i possible previous results at %i (%s) from memory or HDD.\n',sprintf(repmat('\t',1,oo)),collectDataForIdx(oo),...
-                        hexhash(obj,id_req_s{oo+1}(collectDataForIdx(oo),:)),size(id_req_s{oo+1},1),oo,obj.steps(oo).name);
+                if cDFI(oo) > 0
                     
-                    [~,r_o,~,chklst]        = checkOrSelectByHash(obj,id_req_s{oo+1}(collectDataForIdx(oo),:),[],oo,lastStepInSequence,false);
-                    uncalculatedResults     = sum(~chklst);
+                    r_o         = cell(size(id_req_s{oo+1},1),1);
+                    chklst      = zeros(size(id_req_s{oo+1},1),1);
                     
+                    if obj.steps(oo).saveme || obj.steps(oo).memorizeme
+                        [~,r_o(cDFI(oo)),~,chklst(cDFI(oo))]        = checkOrSelectByHash(obj,id_req_s{oo+1}(cDFI(oo),:),[],oo,lastStepInSequence,false);
+%                         r_o(cDFI(oo))   = r_only;
+                    end
                     
-                    % Perhaps this code is not entirely correct. Because if
-                    % the decision was already taken, but the previous
-                    % steps are steps that don't get saved, we will not
-                    % find it on the hdd and thus the assertion below will
-                    % give an error...??
+                    if ~chklst(cDFI(oo))
+                        pauseSequence   = [1 1 1 3 3 3 5 5 5];
+                        hhh             = 1;
+                        n               = 0;
+                        
+                        goodToGo        = canCalcOnThisHost(obj,oo,z_cum{oo},false);
+                        gotWhatWeWant   = false;
+                        if goodToGo == 1 % We can calculate it all by ourselves!
+                            gotWhatWeWant = true;
+                        elseif goodToGo == 0 % We cant submit and cant calculate ourselves... :(
+                            error('I can''t calculate this result on this host and you don''t want me to submit to other hosts. Use get(name,args,''sth'',''y'') to submit to hosts.');
+                        end
+                        
+                        while ~gotWhatWeWant
+                            [~,r_o{cDFI(oo)},~,chklst(cDFI(oo))]        = checkOrSelectByHash(obj,id_req_s{oo+1}(cDFI(oo),:),[],oo,lastStepInSequence,false);
                     
-                    assert(uncalculatedResults == 0,'Big error!');
-                    assert(~isempty(r_o),'Big error!');
+                            if ~chklst(cDFI(oo))
+                                % We submitted to the host. We wait and then check again
+                                % for availability on the cache.
+                                obj.pverbose(repmat('\b',1,n))
+                                msg = sprintf('At %s, %i out of %i results were not there yet, waiting for %i seconds. Press ctrl+c to stop waiting.\r',...
+                                    datestr(now),1,1,pauseSequence(hhh));
+                                n = numel(msg);
+                                obj.pverbose(msg);
+                                pause(pauseSequence(hhh))
+                                hhh = min([hhh+1 length(pauseSequence)]);
+                            else
+                                gotWhatWeWant = true;
+                            end
+                        end
+                    end
+                    
+                    for uu=cDFI(oo)
+                        if isempty(r_o{uu})
+                            % In the cumulative z argument, the field
+                            % of the functional has to be in there.
+                            z_cum_f             = z_cum{oo};
+                            z_cum_f.(t_field)   = t_values{uu};
 
-                    for uu=collectDataForIdx(oo) % Should be executed only once...
+                            % In the step z argument, the field of the
+                            % functional might not be in there, if the
+                            % functional was started in a previous
+                            % step.
+                            z_step_f            = z_step{oo};
+                            if isfield(z_step_f,t_field)
+                                z_step_f.(t_field)  = t_values{uu};
+                            end
+
+                            if ~isempty(decidedOver)
+                                if isfield(z_cum_f,decidedOver)
+                                    if iscell(z_cum_f.(decidedOver))
+                                        if length(z_cum_f.(decidedOver)) == size(id_req_s{oo+1},1)
+                                            z_cum_f.(decidedOver) = z_cum_f.(decidedOver){uu};
+                                        else
+                                            error('boo!')
+                                        end
+                                    end
+                                end                                
+                                if isfield(z_step_f,decidedOver)
+                                    if iscell(z_step_f.(decidedOver))
+                                        if length(z_step_f.(decidedOver)) == size(id_req_s{oo+1},1)
+                                            z_step_f.(decidedOver) = z_step_f.(decidedOver){uu};
+                                        else
+                                            error('boo!')
+                                        end
+                                    end
+                                end
+                            end
+
+                            r_i         = obj.getIndividual(r_prev,rf_prev,fnc_output_fields,t_field,uu,size(id_req_s{oo+1},1));
+
+                            % After we've taken a decision, we assume all
+                            % the new data to be truely new. However, if
+                            % the decision decided for the same result
+                            % twice or more, we will get the same result
+                            % multiple times and we run into issues with
+                            % the unique hashes....
+
+                            if ~isempty(decidedOver)
+                                r_o{uu}     =   fetchStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence);
+                            else
+                                r_o{uu}     = calcNewStep(obj, z_cum_f, z_step_f, r_i ,id_req_s{oo+1}(uu,:), oo, lastStepInSequence,uu == 1);
+                            end
+                        end
+
                         for bb=1:length(new_output_fields)
-                            if isfield(r_o,new_output_fields{bb})
-                                r.(new_output_fields{bb}){uu}   = r_o.(new_output_fields{bb});
-                                f.(new_output_fields{bb}).f     = t_field;
+                            if isfield(r_o{uu},new_output_fields{bb})
+                                r.(new_output_fields{bb}){uu}       = r_o{uu}.(new_output_fields{bb});
+                                rf.(new_output_fields{bb}).f        = t_field;
                             end
                         end
                     end
@@ -457,7 +534,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                                 end
                             end
 
-                            r_i         = obj.getIndividual(r_prev,f_prev,fnc_output_fields,t_field,uu,size(id_req_s{oo+1},1));
+                            r_i         = obj.getIndividual(r_prev,rf_prev,fnc_output_fields,t_field,uu,size(id_req_s{oo+1},1));
                             
                             % After we've taken a decision, we assume all
                             % the new data to be truely new. However, if
@@ -483,7 +560,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                         for bb=1:length(new_output_fields)
                             if isfield(r_o{uu},new_output_fields{bb})
                                 r.(new_output_fields{bb}){uu}   = r_o{uu}.(new_output_fields{bb});
-                                f.(new_output_fields{bb}).f     = t_field;
+                                rf.(new_output_fields{bb}).f     = t_field;
                             end
                         end
                     end
@@ -567,7 +644,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                 end
                 
                 r_n         = r;
-                f_n         = f;
+                f_n         = rf;
                 z_cum_n     = z_cum;
                 z_step_n    = z_step;
                 
@@ -615,7 +692,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                         [dec_o{uu},z_dec_o{uu}] = calcNewDecision(obj,z_cum_f,z_step_f,r,id_req_s{oo+1}(uu,:),id_fast_s{oo+1}(uu,:),id_req_s{oo},oo,lastStepInSequence);
                         
                         t_dec_idx           = find(all((id_req_s{oo} - repmat(dec_o{uu},size(id_req_s{oo},1),1)) == 0,2));
-                        [r_o{uu},~]         = obj.getIndividual(r, f, fieldnames(r), obj.steps(oo).decide, t_dec_idx, size(id_req_s{oo},1)); %#ok<FNDSB>
+                        [r_o{uu},~]         = obj.getIndividual(r, rf, fieldnames(r), obj.steps(oo).decide, t_dec_idx, size(id_req_s{oo},1)); %#ok<FNDSB>
 
                         if obj.verbose && uncalculatedResults > uncalculatedResultsWithCounter
                             calculatedResults = calculatedResults + 1;
@@ -653,7 +730,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                 z_cum           = z_cum_n;
                 z_step          = z_step_n;
                 r               = r_n;
-                f               = r_f;
+                rf               = r_f;
                 
                 decidedOver     = obj.steps(oo).decide;
                 
@@ -667,7 +744,7 @@ function [r,f,id_cum_s,z_cum,z_step] = getSingleResult(obj,name,z_cum,z_step,sta
                     fprintf('%sWe need to take a decision at %i (%s) : %s / F:%s.\n',sprintf(repmat('\t',1,oo)),oo,obj.steps(oo).name,hexhash(obj,id_req_s{oo+1}),hexhash(obj,id_fast_s{oo+1}));
                 end
 
-                [r,f,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,z_cum{oo},z_step{oo},r,f,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
+                [r,rf,id_dec_s{oo+1},z_dec]    = fetchDecision(obj,z_cum{oo},z_step{oo},r,rf,id_req_s{oo+1},id_fast_s{oo+1},id_req_s{oo},oo,lastStepInSequence);                    
 
                 for nn=1:length(z_cum)
                     if isfield(z_cum{nn},(obj.steps(oo).decide))

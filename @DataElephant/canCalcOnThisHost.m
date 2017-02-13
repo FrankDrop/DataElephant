@@ -18,7 +18,6 @@ function [goodToGo] = canCalcOnThisHost(obj,step,z,submittedBefore)
             toHosts     = sprintf('%s,',obj.steps(step).hosts{:});
             toHosts     = toHosts(1:(end-1));
             if ~submittedBefore
-%                 submit(obj,name,z,'to',toHosts,'pre','0'); % 0 as prefix to get highest priority on host.
                 submit(obj,obj.steps(step).outputs{1},z,'to',toHosts,'pre','0'); % 0 as prefix to get highest priority on host.
             end
             goodToGo = 2;  % Means submitted, we have to wait.

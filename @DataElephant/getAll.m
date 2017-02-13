@@ -1,4 +1,4 @@
-function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,f,id_cum,minStep)
+function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,stopAtStep,lastStepInSequence,r,rf,id_cum,minStep)
 
     fnc             = {};
     fnc_step        = [];
@@ -261,8 +261,8 @@ function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
 % equal for all functionals in subsequent steps.
 
     if singleUntilStep >= startAtStep
-        [r,id_cum_s,z_cum,z_step]   = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,f,id_cum,false,[],minStep);
-        id_cum                      = id_cum_s;
+        [r,rf,id_cum_s,z_cum,z_step]    = getSingleResult(obj,name,z_cum,z_step,startAtStep,singleUntilStep,lastStepInSequence,r,rf,id_cum,false,[],minStep);
+        id_cum                          = id_cum_s;
     end
     
 %% The functional part
@@ -274,27 +274,31 @@ function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
 
         if simpleFunctional || getDecisionAsFncOf
             
-            [r_s,id_cum_f,~,~] = getSingleResult(obj,name,z_cum,z_step,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,f,id_cum,true,getAsFuncOf,minStep);
+            [r_s,~,id_cum_f,~,~] = getSingleResult(obj,name,z_cum,z_step,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,true,getAsFuncOf,minStep);
             
             f.sub     = '';
             
             % The output of getSingleResult is slightly different from
             % getAll, so we have to convert it.
             r_f             = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
+            rf_f            = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             
             for rr=1:length(z_cum{stopFncAtStep}.(getAsFuncOf))
                 if iscell(name)
                     for ii=1:length(name)
-                        r_f{rr}.(name{ii})   = r_s.(name{ii}){rr};
+                        r_f{rr}.(name{ii})      = r_s.(name{ii}){rr};
+%                         rf_f{rr}.(name{ii})     = rf_s.(name{ii}){rr};
                     end
                 else
-                    r_f{rr}.(name)   = r_s.(name){rr};
+                    r_f{rr}.(name)      = r_s.(name){rr};
+%                     rf_f{rr}.(name)     = rf_s.(name){rr};
                 end
             end
         else
             obj.pverbose('%sGetting results as a function of the complex functional %s.\n',sprintf(repmat('\t',1,singleUntilStep)),getAsFuncOf);
             
             r_f             = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
+            rf_f            = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             f_f             = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             id_cum_f        = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
             z_cum_ret_f     = cell(length(z_cum{stopFncAtStep}.(getAsFuncOf)),1);
@@ -319,7 +323,7 @@ function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
                         z_step_f{uu}.(getAsFuncOf) = z_cum{stopFncAtStep}.(getAsFuncOf){ii};
                     end
                 end
-                [r_f{ii},f_f{ii},id_cum_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,f,id_cum,minStep);                
+                [r_f{ii},rf_f{ii},id_cum_f{ii},f_f{ii},z_cum_ret_f{ii},z_step_ret_f{ii}] = getAll(obj,name,z_cum_f,z_step_f,singleUntilStep+1,stopFncAtStep,lastStepInSequence,r,rf,id_cum,minStep);                
             end
             f.sub     = f_f{1};
         end
@@ -329,6 +333,7 @@ function [r,f,id_cum,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep,st
             error('I think the code you are about to use is very old and should be checked!');
         else
             r           = r_f;
+            rf          = rf_f;
             id_cum      = id_cum_f;
         end
     end

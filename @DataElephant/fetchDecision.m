@@ -1,4 +1,4 @@
-function [r_t,f_t,decision,z_dec] = fetchDecision(obj,z_cum,z_step,r,f,hash,fasthash,decision_hash,stepnr,lastStepInSequence)
+function [r_t,rf_t,decision,z_dec] = fetchDecision(obj,z_cum,z_step,r,f,hash,fasthash,decision_hash,stepnr,lastStepInSequence)
 
     % First check if the decision is in the fast hash memory
     [z_dec,~,decision,~] = checkOrSelectByHash(obj,hash,fasthash,stepnr,lastStepInSequence,true);
@@ -21,5 +21,5 @@ function [r_t,f_t,decision,z_dec] = fetchDecision(obj,z_cum,z_step,r,f,hash,fast
     end
     
     idx         = find(all((decision_hash - repmat(decision,size(decision_hash,1),1)) == 0,2));
-    [r_t,f_t]   = obj.getIndividual(r, f, fieldnames(r), obj.steps(stepnr).decide, idx, size(decision_hash,1)); %#ok<FNDSB>
+    [r_t,rf_t]  = obj.getIndividual(r, f, fieldnames(r), obj.steps(stepnr).decide, idx, size(decision_hash,1)); %#ok<FNDSB>
 end

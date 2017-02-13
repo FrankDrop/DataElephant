@@ -57,9 +57,26 @@ function [r,id_cum] = get(obj,name,varargin)
     if any([atBranch,atStep] == -1)
         error('Something went wrong');
     end
-
+    
     if (any(diff(atBranch) ~= 0))
-        error('I can only combine data from the same branch.')
+        % We might be able to recover... if one of the results if from the
+        % main branch:
+        if any(atBranch == 0)
+            % Update the tree to 
+            updateTree(obj,names_stripped{atBranch ~= 0});
+            foundIt = false;
+            for oo=1:length(obj.steps)
+                if any(strcmp(obj.steps(oo).output,names_stripped{atBranch == 0}))
+                    foundIt = true;
+                end
+            end
+            
+            if ~foundIt
+                error('I can only combine data from the same branch.');
+            end
+        else
+            error('I can only combine data from the same branch.');
+        end
     end
 
     minStep     = min(atStep);
@@ -90,7 +107,6 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    
     % Pre-construct the z objects that are necessary later, to
     % prevent that you constantly have to build them again and
     % again.
@@ -116,7 +132,7 @@ function [r,id_cum] = get(obj,name,varargin)
             end
             
             if iscell(z.(obj.steps(ii).input{aa}))
-                if ~any(strcmp(obj.steps(ii).input{aa},obj.defaultInputs)) || any(strcmp(obj.steps(ii).input{aa},thisCallInputNames))
+                if ~any(strcmp(obj.steps(ii).input{aa}, obj.defaultInputs)) || any(strcmp(obj.steps(ii).input{aa},thisCallInputNames))
                     makeFunctionalCache(obj,obj.steps(ii).input{aa},z.(obj.steps(ii).input{aa}));
                 end
             end
@@ -173,7 +189,7 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    [r,f,id_cum,~,~] = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
+    [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep);
     
     if nargout == 0 || nargout == 1
         
