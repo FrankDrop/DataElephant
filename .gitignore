@@ -1,3 +1,6 @@
 *.mexw64
 *.mexa64
 *.pdb
+slprj/*
+@DataElephant/config.m
+*.m~

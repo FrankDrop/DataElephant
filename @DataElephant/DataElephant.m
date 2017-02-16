@@ -99,6 +99,7 @@ classdef DataElephant < handle
         stepTemplate();
         decisionTemplate();
         processTemplate();
+        configTemplate();
     end
     
     methods(Static, Access = private)
