@@ -14,7 +14,7 @@ a   = DataElephant(@p_racingSimulator,'verbose','no');
 % p_racingSimulator by calling the get() function.
 % Here, we get the result f_x_raw from the first step (s_readRAF)
 % of this process.
-
+clc
 figure
     plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
     plot(a.get('f_x_raw','raf_path','RAF/lap3.raf'),'b-')

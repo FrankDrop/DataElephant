@@ -10,6 +10,12 @@ function r_n = calcNewStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence,che
                 error('Step %s returned result %s, but it was not in its output list.',obj.createLink(obj.steps(stepnr).name),outputs{oo})
             end
         end
+        
+        for oo=1:length(obj.steps(stepnr).output)
+            if ~any(strcmp(obj.steps(stepnr).output{oo},outputs))
+                error('Step %s did not return result %s, but it is in the step''s output list.',obj.createLink(obj.steps(stepnr).name),obj.steps(stepnr).output{oo})
+            end
+        end
     end
     
     

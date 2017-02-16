@@ -96,10 +96,6 @@ function [r,id_cum] = get(obj,name,varargin)
             end
         end
     end
-    
-    
-    
-    
 
     for oo=1:length(names_stripped)
         if ~any(strcmp(names_stripped{oo},obj.allOutputs))
@@ -124,6 +120,17 @@ function [r,id_cum] = get(obj,name,varargin)
     % again.
     z_cum   = cell(untilStepNumber,1);
     z_step  = cell(untilStepNumber,1);
+    
+    
+    % Check if there are any decisions to be taken between just one option
+    
+    for ii=1:untilStepNumber
+        if ~obj.steps(ii).type
+            if ~iscell(z.(obj.steps(ii).decide))
+                z.(obj.steps(ii).decide) = {z.(obj.steps(ii).decide)};
+            end
+        end
+    end
 
     for ii=1:untilStepNumber
         if ii > 1
@@ -135,7 +142,6 @@ function [r,id_cum] = get(obj,name,varargin)
         end
 
         for aa=1:length(obj.steps(ii).input)
-            
             try
                 z_cum{ii}.(obj.steps(ii).input{aa})     = z.(obj.steps(ii).input{aa});
                 z_step{ii}.(obj.steps(ii).input{aa})    = z.(obj.steps(ii).input{aa});

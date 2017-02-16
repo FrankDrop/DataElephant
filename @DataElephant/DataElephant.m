@@ -95,11 +95,16 @@ classdef DataElephant < handle
     end
     
     methods(Static, Access = public)
-        varargout   = splitOutput(out);
-        A           = catstruct(varargin);
+        
+        stepTemplate();
+        decisionTemplate();
+        processTemplate();
     end
     
     methods(Static, Access = private)
+        varargout   = splitOutput(out);
+        A           = catstruct(varargin);
+        anyTemplate(template,name);
         fldr                    = tidyfoldername(fldr);
         mssg                    = addPort(mssg,port);
         s                       = createLink(n);

@@ -1,0 +1,15 @@
+clc
+close all
+clear all
+
+%%
+
+a   = DataElephant(@p_racingSimulator);
+
+%%
+
+pobj    = a.get('f_x_raw','raf_path','RAF/lap2.raf');
+
+%%
+
+pobj.abs
