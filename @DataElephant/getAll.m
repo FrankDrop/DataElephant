@@ -265,8 +265,7 @@ function [r,rf,id_cum,f,z_cum,z_step] = getAll(obj,name,z_cum,z_step,startAtStep
 %%
 
 if drawStructure
-%     fprintf('Draaaaaaaaaaaaaaaaaaaaaaaaawing.\n')
-    figure
+
     boxHeight   = 0.5;
     boxWidth    = 0.5;
     if singleUntilStep >= startAtStep
@@ -392,7 +391,7 @@ end
                 if isfield(r,name{oo})
                     rn.(name{oo})   = r.(name{oo});
                 else
-                    error('The requested output (%s) is not part of variable r. Which is weird!',name);
+                    error('The requested output (%s) is not part of variable r. Which is weird!',name{oo});
                 end
             end
             r   = rn;

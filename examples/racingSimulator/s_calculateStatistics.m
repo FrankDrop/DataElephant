@@ -8,7 +8,7 @@ function step = s_calculateStatistics()
     step.optional   = {};
     step.output     = {'f_x_max','f_y_max','f_z_max','laptime'};
     step.handle     = @myfunc;
-    step.version    = 2;
+    step.version    = 1;
     step.saveme     = 1;
     step.memorizeme = 1;
     

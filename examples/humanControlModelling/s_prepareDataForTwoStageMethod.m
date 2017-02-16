@@ -110,4 +110,29 @@ function step = s_prepareDataForTwoStageMethod()
         r_n.evalon_arx    = evalon_rs;
         r_n.N_arx         = length(fiton_rs);
     end
+    function [t,y] = FResample(t,x,si,filt)
+
+        % define n_points?
+        n_points = length(x);
+
+        % define sampling frequency
+        fs   = 1/(t(2)-t(1));
+        t_id = n_points/fs;
+        N_id = n_points;
+
+        % block filter the data
+        % perform fourier transform
+        xf = fft(x);
+
+        % set amplitudes to zero
+        xf(round(fs/2/filt*t_id+1):round(N_id-fs/2/filt*t_id)) = 0;
+
+        % transform back
+        xs = ifft(xf,'symmetric');
+
+    %     plot(t,xs,'g'); hold on
+        % resample the data
+        t = t(1:si:end);
+        y = xs(1:si:end);
+    end
 end

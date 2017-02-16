@@ -127,7 +127,7 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
                 
                 if isfield(obj.fnchashcache,s_fields{oo})
                     fnchash     = obj.fnchashcache.(s_fields{oo});
-                    fld_nr = oo;
+                    fld_nr      = oo;
                 else
                     error('The function hash cache is missing for %s.',s_fields{oo});
                 end
@@ -143,15 +143,14 @@ function id = generateHash(obj,~,z_step,stepnr,id_req_s,decisionFunctional,funct
             prehash(2*n_fields+3,:)     = CalcMD5(prevhash,'char','Dec');
             id                          = [lastCommonHash(obj,id_req_s) CalcMD5(prehash,'char','Dec')];
             
-        else            
+        else % step
             if stepnr == decisionStartAt(atDecision)
                 if stepnr > 1
-%                     prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
-%                 else
                     prehash(2*n_fields+3,:,:) = repmat(id_req_s((end-(obj.hashlength-1)):end).',1,nr_func);
                 end
                 
-                id  = zeros(length(z_step.(decisionDecidesOver{atDecision})),size(id_req_s,2)+16);
+%                 fnchash     = obj.fnchashcache.(s_fields{oo});
+                id          = zeros(length(z_step.(decisionDecidesOver{atDecision})),size(id_req_s,2)+16);
                 
                 for uu=1:size(id,1)
                     prehash(2*fld_nr,:,:)   = repmat(fnchash(uu,:),1,nr_func);

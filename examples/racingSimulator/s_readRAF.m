@@ -11,9 +11,9 @@ function step = s_readRAF()
                        't_cont;omega_x_raw','t_cont;omega_y_raw','t_cont;omega_z_raw',...
                        't_cont;x_raw','t_cont;y_raw','t_cont;z_raw',...
                        't_cont;psi_raw','t_cont;phi_raw','t_cont;theta_raw',...
-                       't_cont;steer','t_cont;gear','t_cont;throttle','t_cont;clutch','t_cont;brake'};
+                       't_cont;steer','t_cont;gear','t_cont;throttle','t_cont;clutch','t_cont;brake','t_cont;V_raw'};
     step.handle     = @myfunc;
-    step.version    = 1;
+    step.version    = 4;
     step.saveme     = 1;
     step.memorizeme = 1;
     
@@ -72,6 +72,8 @@ function step = s_readRAF()
         r_n.x_raw       = [];
         r_n.y_raw       = [];
         r_n.z_raw       = [];
+        
+        r_n.V_raw       = [];
         
         t_prev          = 0;
         Di_prev         = 0;
@@ -142,7 +144,9 @@ function step = s_readRAF()
             
             r_n.f_x_raw         = [r_n.f_x_raw; zeros(RAF_N,1)];    
             r_n.f_y_raw         = [r_n.f_y_raw; zeros(RAF_N,1)];    
-            r_n.f_z_raw         = [r_n.f_z_raw; zeros(RAF_N,1)];    
+            r_n.f_z_raw         = [r_n.f_z_raw; zeros(RAF_N,1)];
+            
+            r_n.V_raw           = [r_n.V_raw; zeros(RAF_N,1)];
 
             RX                  = [RX; zeros(RAF_N,1)];         %#ok<AGROW>
             RY                  = [RY; zeros(RAF_N,1)];         %#ok<AGROW>
@@ -190,6 +194,7 @@ function step = s_readRAF()
 
 
             %         1     float   24      speed               : m/s
+                r_n.V_raw(idx+oo)          = double(typecast(raf_contents(sidx+(25:28)),'single'));
             %         1     float   28      car distance        : m - travelled by car
             %         1     int     32      position X          : map X    (1m = 65536)
                 r_n.x_raw(idx+oo)          = double(typecast(raf_contents(sidx+(33:36)),'int32'))/65536;

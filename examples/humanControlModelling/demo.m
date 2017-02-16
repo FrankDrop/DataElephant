@@ -4,7 +4,6 @@ clear all
 
 %%
 a   = DataElephant(@p_twostagemethod);
-% b   = DataElephant(@s_frequency_response);
 
 %%
 
@@ -64,19 +63,13 @@ z.ft                    = 'sdt ramp';
 z.NN                    = getNNcell(1:4,0:4,0:4,1:16,1:8);
 z.c                     = 3;
 
-close all
-clc
 a.get('nn_arx_best',z,'si',{2,4}.')
 
-return
-% a.get('nn_arx_best',z).sy
-% return
 %%
 figure
     plot(a.get('o_arx',z))
 %%
 
-close all
 figure
     plot(a.get('o_arx',z).deg,'k'); hold on
     plot(a.get('e',z).deg,'r','LineWidth',2)
@@ -84,22 +77,13 @@ figure
     ylim([-20 20])
 
 %%
-close all
+
 z.NN1   = [5 5 5 3 3];
 z.NN    = getNNcell(1:4,0:4,0:5,1:8,1:9);
 z.c     = 3;
 a.get('nn_arx_best',z).sy
 
 a.get('nn_arx_best',z,'c',{1,2}.').sy
-
-return
-
-% ,
-
-s       = tf('s');
-Ypt     = z.K_p_t * s / (z.T_I*s + 1) * exp(-z.tau_p_t*s) * z.omega_nms^2 / (s^2 + 2*z.zeta_nms*z.omega_nms*s + z.omega_nms^2);
-Ype     = z.K_p_e * exp(-z.tau_p_e*s) * z.omega_nms^2 / (s^2 + 2*z.zeta_nms*z.omega_nms*s + z.omega_nms^2);
-Yc      = 1 / s;
 
 figure
     bode(a.get('Y_arx_best_idpoly',z),'r','which',1);

@@ -20,11 +20,16 @@ function [r,id_cum] = get(obj,name,varargin)
     end
     
     names_stripped  = cell(size(names_raw));
+    names_unequal   = false;
     
     for oo=1:length(names_raw)
-        strip_special           = regexp(names_raw{oo},'(?<=squeeze\().*(?=\))[.'']*','match');
+        strip_special1      = regexprep(names_raw{oo},'@','');
+        names_unequal       = names_unequal | ~strcmp(names_raw{oo},strip_special1);
+        names_raw{oo}       = strip_special1;
+        
+        strip_special       = regexp(strip_special1,'(?<=squeeze\().*(?=\))[.'']*','match');        
         if isempty(strip_special)
-            strip_special       = names_raw{oo};
+            strip_special       = strip_special1;
         else
             strip_special       = strip_special{1};
         end
@@ -85,9 +90,16 @@ function [r,id_cum] = get(obj,name,varargin)
     t_inputs = fieldnames(z);
     for oo=1:length(t_inputs)
         if ~any(strcmp(t_inputs{oo},obj.allInputs))
-            error('This process is not sensitive to parameter %s.',t_inputs{oo});
+            z = rmfield(z,t_inputs{oo});
+            if obj.verbose
+                warning('This process is not sensitive to parameter %s.',t_inputs{oo});
+            end
         end
     end
+    
+    
+    
+    
 
     for oo=1:length(names_stripped)
         if ~any(strcmp(names_stripped{oo},obj.allOutputs))
@@ -189,12 +201,12 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
             
-    if nargout == 0
-        [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,true);
-    elseif nargout == 1        
+%     if nargout == 0
+%         [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,true);
+   if nargout <= 1
         [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,false);
         
-        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,f,{},{},1);
+        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,names_unequal,f,{},{},1);
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 

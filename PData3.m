@@ -144,7 +144,7 @@ classdef PData3 < matlab.mixin.Copyable
                 end
             end
             obj.checkdimensions();
-        end 
+        end
         
     end
     
@@ -156,6 +156,9 @@ classdef PData3 < matlab.mixin.Copyable
                 obj.isEmpty = 0;
                 obj.setData(varargin{:});
                 obj.xAxis  = 'x';
+                if numel(obj.x) == 1 && length(obj.fNames) == 1
+                    obj.xAxis = obj.fNames{1};
+                end
             end
         end
         

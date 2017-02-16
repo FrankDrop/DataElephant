@@ -9,7 +9,7 @@ function step = s_filterRAF()
     step.output     = {'t_cont;f_x','t_cont;f_y','t_cont;f_z',...
                        't_cont;omega_x','t_cont;omega_y','t_cont;omega_z',...
                        't_cont;x','t_cont;y','t_cont;z',...
-                       't_cont;psi','t_cont;phi','t_cont;theta'};
+                       't_cont;psi','t_cont;phi','t_cont;theta','t_cont;V'};
     step.handle     = @myfunc;
     step.version    = 1;
     step.saveme     = 1;
@@ -45,5 +45,6 @@ function step = s_filterRAF()
         r_n.phi         = filtfilt(b,a,r.phi_raw);
         r_n.theta       = filtfilt(b,a,r.theta_raw);
         
+        r_n.V           = filtfilt(b,a,r.V_raw);
     end
 end

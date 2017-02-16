@@ -95,7 +95,8 @@ classdef DataElephant < handle
     end
     
     methods(Static, Access = public)
-        varargout               = splitOutput(out);
+        varargout   = splitOutput(out);
+        A           = catstruct(varargin);
     end
     
     methods(Static, Access = private)
@@ -218,6 +219,6 @@ classdef DataElephant < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
-        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll);
+        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,names_unequal,f,fn,fv,ll);
     end
 end

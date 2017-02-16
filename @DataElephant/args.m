@@ -5,7 +5,7 @@ function z = args(varargin)
     
     for oo=1:length(varargin)
         if isstruct(varargin{oo})
-            z   = catstruct(z,varargin{oo});
+            z   = DataElephant.catstruct(z,varargin{oo});
             rem = [rem oo]; %#ok<AGROW>
         end
     end

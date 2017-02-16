@@ -1,4 +1,4 @@
-function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
+function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,names_unequal,f,fn,fv,ll)
 
     if isempty(f) % f contains the functional. if it is empty, we only have one result.
         
@@ -52,7 +52,7 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
                 end
             else
                 if iscell(r{1}.(names_stripped{2}))
-                    y = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);
+                    y = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);                    
                 else
                     y = zeros([length(f.this.value) size(r{1}.(names_stripped{2}))]);
                 end
@@ -63,15 +63,23 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
                     x   = r{1}.(names_stripped{1});
                 end
                 
-                if (strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
-                    for oo=1:length(f.this.value)
-                        y(oo,:)     = r{oo}.(names_stripped{2})(:);
+                try
+                    if (strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
+                        for oo=1:length(f.this.value)
+                            y(oo,:)     = r{oo}.(names_stripped{2})(:);
+                        end
+                    else
+                        for oo=1:length(f.this.value)
+                            y           = r{oo}.(names_stripped{2}); %#ok<NASGU>
+                            y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
+                            y(oo,:)     = y(:);
+                        end
                     end
-                else
-                    for oo=1:length(f.this.value)
-                        y           = r{oo}.(names_stripped{2}); %#ok<NASGU>
-                        y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
-                        y(oo,:)     = y(:);
+                catch e
+                    if strcmp(e.identifier,'MATLAB:subsassigndimmismatch')
+                        error('The result %s is not always the same size over the functional %s.',names_stripped{2},f.this.name,names_stripped{2});
+                    else
+                        rethrow(e);
                     end
                 end
             end
@@ -82,7 +90,7 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
             f_i = f.sub;
             y_i = cell(length(f.this.value),1);
             for oo=1:length(f.this.value)
-                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},names_stripped,names_raw,f_i,fn,fv,ll+1);
+                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},names_stripped,names_raw,names_unequal,f_i,fn,fv,ll+1);
                 y_i{oo}             = y_oo;
             end
             

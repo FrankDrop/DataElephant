@@ -6,9 +6,9 @@ function step = s_bestLap()
     step.baseon     = {};
     step.input      = {};
     step.optional   = {};
-    step.output     = {'t_cont;f_x_best','t_cont;f_y_best','t_cont;f_z_best'};
+    step.output     = {'t_cont;f_x_best','t_cont;f_y_best','t_cont;f_z_best','t_cont;steer_best'};
     step.handle     = @myfunc;
-    step.version    = 1;
+    step.version    = 2;
     step.saveme     = 1;
     step.memorizeme = 1;
     
@@ -27,5 +27,6 @@ function step = s_bestLap()
         r_n.f_x_best     = r.f_x;
         r_n.f_y_best     = r.f_y;
         r_n.f_z_best     = r.f_z;
+        r_n.steer_best   = r.steer;
     end
 end

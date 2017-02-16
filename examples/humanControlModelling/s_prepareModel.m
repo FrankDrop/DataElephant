@@ -10,7 +10,7 @@ function step = s_prepareModel()
     step.output     = {'model_p'};
     step.handle     = @myfunc;
     step.version    = 1;
-    step.saveme     = 0;
+    step.saveme     = 1;
     step.memorizeme = 1;
 
     function r_n = myfunc(z,~,~,~)
