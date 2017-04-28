@@ -60,11 +60,12 @@ z.pmax                  = Inf;
 z.zmax                  = [Inf Inf];
 z.Yp                    = Yp.SI;
 z.ft                    = 'sdt ramp';
-z.NN                    = getNNcell(1:4,0:4,0:4,1:16,1:8);
+z.NN                    = getNNcell(1:4,0:4,0:4,1:8,1:8);
 z.c                     = 3;
 
-a.get('nn_arx_best',z,'si',{2,4}.')
-
+a.get('nn_arx_best',z)
+% a.get('nn_arx_best',z,'si',{2,4}.')
+return
 %%
 figure
     plot(a.get('o_arx',z))

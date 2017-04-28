@@ -6,7 +6,7 @@ clear all
 % We start off by telling DataElephant we want to work with the process
 % p_racingSimulator.
 
-a   = DataElephant(@p_racingSimulator,'verbose','no');
+a   = DataElephant(@p_racingSimulator,'verbose','yes');
 
 
 %%
@@ -14,7 +14,10 @@ a   = DataElephant(@p_racingSimulator,'verbose','no');
 % p_racingSimulator by calling the get() function.
 % Here, we get the result f_x_raw from the first step (s_readRAF)
 % of this process.
-clc
+% clc
+a.get('f_x_raw','raf_path','RAF/lap7.raf')
+% return
+
 figure
     plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
     plot(a.get('f_x_raw','raf_path','RAF/lap3.raf'),'b-')
@@ -51,7 +54,7 @@ figure
 % the signal t_cont.
 
 figure
-    plot(a.get('y','raf_path','RAF/lap2.raf','f_filt',3),'k')
+    plot(a.get('y','raf_path','RAF/lap5.raf','f_filt',3),'k')
 
 %%
 figure
@@ -117,7 +120,7 @@ figure
     plot(a.get('f_z',z),'r')
     plot(a.get('f_z_s',z),'b')
     plot(a.get('f_z_s',z,'TC_ratelimit',Inf),'g')
-
+return
 %%
 % It is a bit difficult to compare the output of the simulator with the
 % vehicle accelerations, because these are scaled first. It would make more
@@ -173,6 +176,7 @@ figure
 % This branch starts after s_filterRAF.
 
 a.get('laptime',z,'raf_path','RAF/lap2.raf')
+return
 a.get('laptime',z,'raf_path','RAF/lap3.raf')
 a.get('laptime',z,'raf_path','RAF/lap4.raf')
 a.get('laptime',z,'raf_path','RAF/lap5.raf')

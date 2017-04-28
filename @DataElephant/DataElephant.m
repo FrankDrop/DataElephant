@@ -90,6 +90,9 @@ classdef DataElephant < handle
         flockip
         flockpacketlength
         
+        % sql
+        sql
+        
         x_output
         getTime
     end
@@ -100,10 +103,11 @@ classdef DataElephant < handle
         decisionTemplate();
         processTemplate();
         configTemplate();
+        varargout   = splitOutput(out);
     end
     
     methods(Static, Access = private)
-        varargout   = splitOutput(out);
+        
         A           = catstruct(varargin);
         anyTemplate(template,name);
         fldr                    = tidyfoldername(fldr);

@@ -52,6 +52,8 @@ function step = s_simulateModel()
             end
         end
         
+        
+        
         if verbose
             cf      = gcf;
             fn      = fieldnames(x_s);
@@ -69,5 +71,12 @@ function step = s_simulateModel()
         end
         
         r_n.model_s   = model.copy;
+        
+        for oo=1:length(step.output)
+            outfld = regexp(step.output{oo},';','split');
+            if length(outfld) == 2 && ~isfield(r_n,outfld{end})
+                r_n.(outfld{end}) = zeros(size(r_n.(outfld{1})));
+            end
+        end
     end
 end

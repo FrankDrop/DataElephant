@@ -30,12 +30,16 @@ function step = s_inputSignals()
         if ~isempty(z.Kt) && ~isempty(z.ft)    
             r_n.ft      = standardTargetSignal(z.ft,model,'Kt',z.Kt);
             model.setTaskFt(r_n.ft);
+        else
+            r_n.ft      = zeros(size(r_n.t_m));
         end
         
         specifyBoth(z,'Kdm','fdm');        
         if ~isempty(z.Kdm) && ~isempty(z.fdm)
             r_n.fdm    = z.Kdm * standardMotionDisturbanceSignal(z.fdm,model);
             model.setTaskFdm(r_n.fdm);
+        else
+            r_n.fdm     = zeros(size(r_n.t_m));
         end
         
         specifyBoth(z,'Ktn','ftn');
@@ -45,6 +49,8 @@ function step = s_inputSignals()
         elseif ~isempty(z.Ktn) && ~isempty(z.ftn) && isempty(z.tau_noise)
             r_n.ftn     = standardTargetNoiseSignal(z.ftn,model,'Ktn',z.Ktn);
             model.setTaskFtn(r_n.ftn);
+        else
+            r_n.ftn     = zeros(size(r_n.t_m));
         end
         
         specifyBoth(z,'Kd','fd');
@@ -53,14 +59,18 @@ function step = s_inputSignals()
             if ~isempty(z.fdShift)
                 fd = circshift(fd,z.fdShift);
             end
-            r_n.fd     = fd;
+            r_n.fd      = fd;
             model.setTaskFd(r_n.fd);
+        else
+            r_n.fd      = zeros(size(r_n.t_m));
         end
 
         specifyBoth(z,'KdLat','fdLat');
         if ~isempty(z.KdLat) && ~isempty(z.fdLat)
             r_n.fdLat   = z.KdLat * standardDisturbanceSignal(z.fdLat,model);
             model.setTaskFdLat(r_n.fdLat);
+        else
+            r_n.fdLat   = zeros(size(r_n.t_m));
         end
         
         r_n.model_i   = model.copy;

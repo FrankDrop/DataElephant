@@ -10,7 +10,7 @@ function savestep(obj,step,removeFromMemory)
         if obj.fileverbose
             fprintf('%sGoing to save %i results for step %i.\n',sprintf(repmat('\t',1,step)),length(idx_data),step);
         end
-            
+
         if ~isempty(idx_data)
 
             % Because we are saving for each step separately, we can assume

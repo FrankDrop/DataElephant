@@ -13,7 +13,7 @@ function step = s_readRAF()
                        't_cont;psi_raw','t_cont;phi_raw','t_cont;theta_raw',...
                        't_cont;steer','t_cont;gear','t_cont;throttle','t_cont;clutch','t_cont;brake','t_cont;V_raw'};
     step.handle     = @myfunc;
-    step.version    = 4;
+    step.version    = 5;
     step.saveme     = 1;
     step.memorizeme = 1;
     

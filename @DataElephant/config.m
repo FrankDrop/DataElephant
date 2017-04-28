@@ -1,5 +1,53 @@
 function [s] = config(obj, hostname)
     switch hostname
+        case 'fdrop-Thinkpad-S430'
+            s.save                  = 'yes';
+            s.load                  = 'yes';
+            s.verbose               = 'yes';
+            s.fileverbose           = 'no';
+            s.deepverbose           = 'no';
+            s.funcverbose           = 'no';
+            s.flockverbose          = 'no';
+            s.win_root              = 'O:\AnalysisCache';
+            s.win_distfolder        = 'O:\DistCache';
+            s.win_tempfolder        = 'D:\CacheProcessDataTemp';
+            s.unix_root             = '/home/fdrop/StorageElephants';
+            s.unix_distfolder       = '/home/fdrop/DistributedElephants';
+            s.unix_tempfolder       = '/home/fdrop/TemporaryElephants';
+            s.flock                 = 'no';
+            s.flockport             = 5600;
+            s.flockip               = '10.38.120.47';
+            s.submittohost          = 'no';
+            s.savetotemp            = 'yes';
+            s.savememory            = 'no';
+            s.addfinalstep          = 'yes';
+            s.continueonerror       = 'yes';
+            s.hostname              = [];
+            s.sql                   = 'no';
+        case 'realtime-ml'
+            s.save                  = 'yes';
+            s.load                  = 'yes';
+            s.verbose               = 'yes';
+            s.fileverbose           = 'no';
+            s.deepverbose           = 'no';
+            s.funcverbose           = 'no';
+            s.flockverbose          = 'no';
+            s.win_root              = 'O:\AnalysisCache';
+            s.win_distfolder        = 'O:\DistCache';
+            s.win_tempfolder        = 'D:\CacheProcessDataTemp';
+            s.unix_root             = '/home/realtime-ml/AnalysisCache';
+            s.unix_distfolder       = '/home/realtime-ml/DistributedElephants';
+            s.unix_tempfolder       = '/home/realtime-ml/CacheProcessDataTemp';
+            s.flock                 = 'no';
+            s.flockport             = 5600;
+            s.flockip               = '10.38.120.47';
+            s.submittohost          = 'no';
+            s.savetotemp            = 'yes';
+            s.savememory            = 'no';
+            s.addfinalstep          = 'yes';
+            s.continueonerror       = 'yes';
+            s.hostname              = [];
+            s.sql                   = 'no';
         otherwise
             s.save                  = 'yes';
             s.load                  = 'yes';
@@ -22,6 +70,7 @@ function [s] = config(obj, hostname)
             s.savememory            = 'no';
             s.addfinalstep          = 'yes';
             s.continueonerror       = 'yes';
-            s.hostname              = []; 
+            s.hostname              = [];
+            s.sql                   = 'no';
     end
 end

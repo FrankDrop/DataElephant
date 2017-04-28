@@ -29,6 +29,7 @@ function obj = init(obj,varargin)
     p.addParameter('addfinalstep',     s.addfinalstep);
     p.addParameter('continueonerror',  s.continueonerror);
     p.addParameter('hostname',         s.hostname);
+    p.addParameter('sql',              s.sql);
     p.parse(varargin{:});
     z = p.Results;
     
@@ -87,6 +88,8 @@ function obj = init(obj,varargin)
     obj.savememory      = strcmp(z.savememory,          'yes');
     obj.continueonerror = strcmp(z.continueonerror,     'yes');
     obj.addfinalstep    = strcmp(z.addfinalstep,        'yes');
+    
+    obj.sql             = strcmp(z.sql,                 'yes');
     
     obj.hashlength          = 16;    
     

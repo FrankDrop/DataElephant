@@ -8,7 +8,7 @@ function savestepsave(obj,fnm,H) %#ok<INUSD>
                     fprintf('Saving to temporary file %s.\n',tmpflname);
                 end
 
-                save(tmpflname,'H');
+                save(tmpflname,'H','-v6');
 
                 src_fileMD5 = CalcMD5(tmpflname,'File','HEX');
                 if obj.deepverbose
@@ -26,7 +26,7 @@ function savestepsave(obj,fnm,H) %#ok<INUSD>
                     fprintf('MD5 hashes are the same!\n');
                 end
             else
-                save(fnm,'H');
+                save(fnm,'H','-v6');
                 savesuccess = true;
             end
         catch e
