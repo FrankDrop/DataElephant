@@ -157,10 +157,9 @@ figure
     subplot(2,2,3)
         plot(a.get('omega_z',z).deg,'r')
     subplot(2,2,4)
-        plot(a.get('V',z).kmh,'b-')
+        plot(a.get('V',z).ms2kmh,'b-')
 %%
 
-close all
 figure
     bode(a.get('Hpx',z),'b')
     bode(a.get('Hpx',z),'r--','w',logspace(-2,2,50).')
