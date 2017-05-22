@@ -469,9 +469,9 @@ classdef PData3 < matlab.mixin.Copyable
         function nobj = cumtrapz(pobj,dim)
             nobj    = pobj.copy;
             if nargin == 1
-                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),1);
+                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),1,false);
             else
-                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),dim);
+                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),dim,false);
             end
         end
         
@@ -519,36 +519,45 @@ classdef PData3 < matlab.mixin.Copyable
         
         function nobj = var(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('var',@(x,d)var(x,1,d),[],dim,varargin{:});
+            if nargin == 1
+                dim = 1;
+            end
+            nobj    = nobj.genericmath('var',@(x,d)var(x,1,d,'includenan'),[],dim,true,varargin{:});
         end
 
         function nobj = nanvar(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('var',@(x,d)nanvar(x,1,d),[],dim,varargin{:});
+            if nargin == 1
+                dim = 1;
+            end
+            nobj    = nobj.genericmath('var',@(x,d)var(x,1,d,'omitnan'),[],dim,true,varargin{:});
         end
 
         function nobj = rms(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('rms',@(x,d)rms(x,d),[],dim,varargin{:});
+            if nargin == 1
+                dim = 1;
+            end
+            nobj    = nobj.genericmath('rms',@(x,d)rms(x,d),[],dim,true,varargin{:});
         end
 
         function nobj = sum(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('sum',@(x,d)sum(x,d),[],dim,varargin{:});
+            nobj    = nobj.genericmath('sum',@(x,d)sum(x,d),[],dim,false,varargin{:});
         end
 
         function nobj = nansum(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('sum',@(x,d)nansum(x,d),[],dim,varargin{:});
+            nobj    = nobj.genericmath('sum',@(x,d)nansum(x,d),[],dim,false,varargin{:});
         end
 
         function nobj = mean(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('mean',@(x,d)mean(x,d),@(x,d)std(x,0,d),dim,varargin{:});
+            nobj    = nobj.genericmath('mean',@(x,d)mean(x,d),@(x,d)std(x,0,d),dim,false,varargin{:});
         end
 
         function nobj = nanmean(obj,dim,varargin)
-            nobj = obj.genericmath('mean',@(x,d)nanmean(x,d),@(x,d)nanstd(x,0,d),dim,varargin{:});
+            nobj = obj.genericmath('mean',@(x,d)nanmean(x,d),@(x,d)nanstd(x,0,d),dim,false,varargin{:});
         end
 
 %% Math functions over a certain dimension specified by name
@@ -585,7 +594,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nanvarover(pobj,over,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmathover('var',@nanvar,[],over,true,varargin{:});
+            nobj    = nobj.genericmathover('var',@(x,d)var(x,0,d,'omitnan'),[],over,true,varargin{:});
         end
 
         function nobj = maxover(pobj,over,varargin)
@@ -732,6 +741,10 @@ classdef PData3 < matlab.mixin.Copyable
         
         function nobj = so(obj,over,varargin)
             nobj = selectover(obj,over,varargin{:});
+        end
+        
+        function nobj = at(obj,sel)
+            nobj = obj.selectover('x',1,sel);
         end
 
         function nobj = selectover(obj,over,varargin)
@@ -1479,6 +1492,19 @@ classdef PData3 < matlab.mixin.Copyable
                     plotphase(PDataobj,varargin{:});  hold on
             end
         end
+        
+        function [nobj,idx] = peaks(obj,varargin)
+            nobj        = obj.copy;
+            px          = obj.x;
+            py          = abs(obj.y);
+            minY        = log10(min(py(py > 0 & py < Inf)));
+            maxY        = log10(max(py(py > 0 & py < Inf)));
+            cutoff      = minY + (maxY-minY)*0.5;
+            idx         = py > 10^cutoff;
+            nobj.x      = obj.x(idx);
+            nobj.y      = obj.y(idx);
+            idx         = find(idx);
+        end
 
         function h = plotmag(obj,varargin)
             [z,unm] = obj.parsePlotInput(varargin{:});
@@ -1922,7 +1948,9 @@ classdef PData3 < matlab.mixin.Copyable
             end
             
             nobj.x  = pobj.x;
-            nobj.y  = [zeros(numDiff,1); diff(nobj.y,varargin{:})./(dt^numDiff)];
+            nobj.y  = nan(size(pobj.x));
+            theDiff = diff(pobj.y,varargin{:})./(dt^numDiff);
+            nobj.y(1:(end-numDiff))  = theDiff(:);
             nobj.checkdimensions();
         end
         
@@ -2380,6 +2408,10 @@ classdef PData3 < matlab.mixin.Copyable
         
         function nobj = genericmath(obj,fncName,mainFnc,varFnc,dim,applytox)
             nobj    = obj.copy;
+            
+            if isempty(dim)
+                dim = 1;
+            end
 
             if iscell(nobj.y)
                 error('I cannot calculate on items contained within a cell.');

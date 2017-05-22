@@ -1,6 +1,6 @@
 function savestepbyidx(obj,fldr,idx)
 
-    tic
+%     tic
     if (obj.sql)
 %         dbname  = 'DataElephant';
         dbname  = 'DataElephant';
@@ -70,10 +70,10 @@ function savestepbyidx(obj,fldr,idx)
         end
     end
     
-    toc
+%     toc
     
     
-    tic
+%     tic
     getLock(obj,fldr,true);     % Get a lock on the folder we are going to write to.
 
     if ~exist(fldr,'dir')
@@ -136,5 +136,5 @@ function savestepbyidx(obj,fldr,idx)
     end
     releaseLock(obj,fldr,true);
 
-    toc
+%     toc
 end
