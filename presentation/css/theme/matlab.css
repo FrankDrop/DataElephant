@@ -1,0 +1,13 @@
+.reveal pre code {
+  display: block;
+  padding: 5px;
+  overflow: auto;
+  word-wrap: normal;
+  font-size: 10pt;
+  line-height: 1.15em;
+  max-height: 800px;
+  }
+
+.reveal section {
+  font-size: 20pt;
+}
