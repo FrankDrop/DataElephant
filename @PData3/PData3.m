@@ -20,6 +20,11 @@ classdef PData3 < matlab.mixin.Copyable
             str = strrep(str,'_','\_');
         end
         
+        function xrms = rms_(x,dim)
+%             xrms = sqrt((1./size(x,dim)) * sum(x.^2,dim));
+            xrms = sqrt(mean(x .* conj(x),dim));
+        end
+        
         function isls = islinespec(x)
             isls    = false;
 
@@ -538,7 +543,7 @@ classdef PData3 < matlab.mixin.Copyable
             if nargin == 1
                 dim = 1;
             end
-            nobj    = nobj.genericmath('rms',@(x,d)rms(x,d),[],dim,true,varargin{:});
+            nobj    = nobj.genericmath('rms',@(x,d)PData3.rms_(x,d),[],dim,true,varargin{:});
         end
 
         function nobj = sum(pobj,dim,varargin)
@@ -564,7 +569,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = rmsover(pobj,over,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmathover('rms',@(x,d)rms(x,d),[],over,true,varargin{:});
+            nobj    = nobj.genericmathover('rms',@(x,d)PData3.rms_(x,d),[],over,true,varargin{:});
         end
         
         function nobj = unwrapover(pobj,over,varargin)
