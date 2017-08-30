@@ -474,9 +474,9 @@ classdef PData3 < matlab.mixin.Copyable
         function nobj = cumtrapz(pobj,dim)
             nobj    = pobj.copy;
             if nargin == 1
-                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),1,false);
+                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),1);
             else
-                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),dim,false);
+                nobj    = nobj.genericxymath('cumtrapz',@(x,y,d)cumtrapz(x,y,d),dim);
             end
         end
         
@@ -484,14 +484,14 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = pobj.copy;
             % Because the abs function is not really taken over a certain
             % dimension, you provide [] as last argument.
-            nobj    = nobj.genericmath('angle',@(x,d)angle(x),[],[]);
+            nobj    = nobj.genericmath('angle',@(x,d)angle(x),[],[],false);
         end
         
         
         
         function nobj = dangle(pobj)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('angle',@(x,d)angle(x),[],[]).deg;
+            nobj    = nobj.genericmath('angle',@(x,d)angle(x),[],[],false).deg;
         end
         
         function nobj = dunwrap(pobj,dim)
@@ -1932,6 +1932,11 @@ classdef PData3 < matlab.mixin.Copyable
                 numDiff = varargin{1};
             end            
             nobj.y  = [zeros(numDiff,1); diff(nobj.y,varargin{:})];
+            if numDiff > 1
+                nobj.myName     = sprintf('d^%i(%s)',numDiff,nobj.myName);
+            else
+                nobj.myName     = sprintf('d(%s)',nobj.myName);
+            end
             nobj.checkdimensions();
         end
         
@@ -1957,6 +1962,13 @@ classdef PData3 < matlab.mixin.Copyable
             theDiff = diff(pobj.y,varargin{:})./(dt^numDiff);
             nobj.y(1:(end-numDiff))  = theDiff(:);
             nobj.checkdimensions();
+            
+            if numDiff > 1
+                nobj.myName     = sprintf('d^%i(%s)/dx^%i',numDiff,nobj.myName,numDiff);
+            else
+                nobj.myName     = sprintf('d(%s)/dx',nobj.myName);
+            end
+            
         end
         
         function nobj = filt_dx(pobj,varargin)
@@ -1993,6 +2005,16 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = pobj.copy;
             nobj.x  = pobj.x(1:(end-1));
             nobj.y  = diff(nobj.y,varargin{:})./dt;
+            
+            if nargin > 1
+                numDiff = varargin{1};
+            end
+            
+            if numDiff > 1
+                nobj.myName     = sprintf('d^%i(%s)/dt^%i',numDiff,nobj.myName,numDiff);
+            else
+                nobj.myName     = sprintf('d(%s)/dt',nobj.myName);
+            end
         end
         
         
@@ -2000,6 +2022,7 @@ classdef PData3 < matlab.mixin.Copyable
         function nobj = sqrt(pobj,varargin)
             nobj    = pobj.copy;
             nobj.y  = sqrt(nobj.y);
+            nobj.myName = ['sqrt(' nobj.myName ')'];
         end
 
         function nobj = log(pobj,varargin)
@@ -2247,7 +2270,11 @@ classdef PData3 < matlab.mixin.Copyable
                             aName   = a.myName;
                         end
 
-                        nobj.myName     = [aName funcSymbols.(func2str(h)) sprintf('%1.2f',b)];
+                        if any(cellfun(@(x)~isempty(strfind(a.myName,x)),{'^','.^'}))
+                            nobj.myName     = [aName funcSymbols.(func2str(h)) sprintf('%1.2f',b)];
+                        else
+                            nobj.myName     = [aName funcSymbols.(func2str(h)) sprintf('{%1.2f}',b)];
+                        end
                     end
                 end
             elseif ~isa(a,'PData3') && isa(b,'PData3')

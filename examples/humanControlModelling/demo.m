@@ -3,7 +3,7 @@ close all
 clear all
 
 %%
-a   = DataElephant(@p_twostagemethod);
+a   = DataElephant(@p_twostagemethod,'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 
 %%
 
@@ -53,8 +53,6 @@ z.filter_o              = 4;
 z.tau_iSignals1         = [0 0];
 z.tau_iSignals          = [0 0];
 
-
-
 z.nr                    = 1;
 z.pmax                  = Inf;
 z.zmax                  = [Inf Inf];
@@ -63,12 +61,6 @@ z.ft                    = 'sdt ramp';
 z.NN                    = getNNcell(1:4,0:4,0:4,1:8,1:8);
 z.c                     = 3;
 
-a.get('nn_arx_best',z)
-% a.get('nn_arx_best',z,'si',{2,4}.')
-return
-%%
-figure
-    plot(a.get('o_arx',z))
 %%
 
 figure
@@ -82,6 +74,7 @@ figure
 z.NN1   = [5 5 5 3 3];
 z.NN    = getNNcell(1:4,0:4,0:5,1:8,1:9);
 z.c     = 3;
+
 a.get('nn_arx_best',z).sy
 
 a.get('nn_arx_best',z,'c',{1,2}.').sy

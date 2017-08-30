@@ -4,40 +4,42 @@ clear all
 
 %%
 
-a   = DataElephant(@p_pdata3demo,'verbose','no');
+a   = DataElephant(@p_pdata3demo,'verbose','no','win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 
 %%
 close all
 pobj    = a.get('sine','dt',0.01,'T',20,'f',0.1);
 
-figure; pobj.plot; pobj.abs.plot                    % calculate the absolute value of y data
-figure; pobj.plot; pobj.circshift(15).plot; pobj.circshift(-30).plot
-figure; pobj.plot; pobj.cumtrapz.plot
-figure; pobj.plot; pobj.diff.plot
-figure; pobj.plot; pobj.diff_dx.plot
-figure; pobj.plot; pobj.diff(2).plot
-figure; pobj.plot; pobj.diff_dx(2).plot
+figure; pobj.plot('r'); pobj.abs.plot('b'); legend show                    % calculate the absolute value of y data
+figure; pobj.plot('r'); pobj.circshift(15).plot('b'); pobj.circshift(-30).plot('g'); legend show
+figure; pobj.plot('r'); pobj.cumtrapz.plot('b'); legend show
+figure; pobj.plot('r'); pobj.diff.plot('b'); legend show
+figure; pobj.plot('r'); pobj.diff_dx.plot('b'); legend show
+figure; pobj.plot('r'); pobj.diff(2).plot('b'); legend show
+figure; pobj.plot('r'); pobj.diff_dx(2).plot('b'); legend show
 
 %% Unit conversions
+close all
+figure; pobj.plot; pobj.deg.plot; legend show                    % Multiply by 180/pi
+figure; pobj.plot; pobj.rad.plot; legend show                    % Divide by 180/pi
 
-figure; pobj.plot; pobj.deg.plot                    % Multiply by 180/pi
-figure; pobj.plot; pobj.rad.plot                    % Divide by 180/pi
-
-figure; pobj.plot; pobj.deg2rad.plot
-figure; pobj.plot; pobj.rad2deg.plot
-figure; pobj.plot; pobj.ms2kmh.plot
-figure; pobj.plot; pobj.kmh2ms.plot
-figure; pobj.plot; pobj.mph2ms.plot
+figure; pobj.plot; pobj.deg2rad.plot; legend show
+figure; pobj.plot; pobj.rad2deg.plot; legend show
+figure; pobj.plot; pobj.ms2kmh.plot; legend show
+figure; pobj.plot; pobj.kmh2ms.plot; legend show
+figure; pobj.plot; pobj.mph2ms.plot; legend show
 
 
 %%
 close all
 pobj    = a.get('imaginary_sine','dt',0.01,'T',20,'f',0.1);
 
-figure; pobj.plot; pobj.real.plot; pobj.imag.plot
-figure; pobj.conj.plot; pobj.conj.real.plot; pobj.conj.imag.plot
+pobj.y
 
-figure; pobj.angle.plot; pobj.angle.unwrap.plot;
-figure; pobj.dangle.plot; pobj.dangle.dunwrap.plot;
+figure; pobj.plot('r'); pobj.real.plot('b--'); pobj.imag.plot('g'); legend show
+figure; pobj.conj.plot('r'); pobj.conj.real.plot('b--'); pobj.conj.imag.plot('g'); legend show
+
+figure; pobj.angle.plot('r'); pobj.angle.unwrap.plot('b'); legend show
+figure; pobj.dangle.plot('r'); pobj.dangle.dunwrap.plot('b'); legend show
 
 

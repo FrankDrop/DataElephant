@@ -6,8 +6,8 @@ clear all
 % We start off by telling DataElephant we want to work with the process
 % p_racingSimulator.
 
-a   = DataElephant(@p_racingSimulator,'verbose','yes');
-
+a   = DataElephant(@p_racingSimulator,'verbose','no',...
+                    'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 
 %%
 % We can get results from any of the steps within the process
@@ -19,8 +19,9 @@ a.get('f_x_raw','raf_path','RAF/lap7.raf')
 % return
 
 figure
-    plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
-    plot(a.get('f_x_raw','raf_path','RAF/lap3.raf'),'b-')
+    plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-','DisplayName','lap 2')
+    plot(a.get('f_x_raw','raf_path','RAF/lap3.raf'),'b-','DisplayName','lap 3')
+    legend show
 % return
 %%
 % Because the raw data is indeed a bit raw, we filter it in step
@@ -28,8 +29,9 @@ figure
 % 2-nd order Butterworth filter that is applied to the data.
 
 figure
-    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',3),'r-')
-    plot(a.get('f_x','raf_path','RAF/lap3.raf','f_filt',3),'b-')
+    plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
+    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',3),'b-')
+    legend show
 % return
 %% 
 % Typing all the inputs every time is annoying and takes up a lot of space,
@@ -40,9 +42,12 @@ z.raf_path  = 'RAF/lap2.raf';
 z.f_filt    = 3;
 
 figure
-    plot(a.get('f_x',z),'r-')
-    plot(a.get('f_x',z,'raf_path','RAF/lap3.raf'),'b-')
+    plot(a.get('f_x',z),'r-','DisplayName','lap 2')
     
+    % Below we get lap3, because inputs in the get() call override the
+    % inputs set in the struct (z).
+    plot(a.get('f_x',z,'raf_path','RAF/lap3.raf'),'b-','DisplayName','lap 3'); 
+    legend show
 %% 
 % What about the x-axis? Remember this line in the s_filterRAF file:
 % step.output     = {'t_cont;f_x','t_cont;f_y','t_cont;f_z',...
@@ -50,13 +55,17 @@ figure
 %                        't_cont;x','t_cont;y','t_cont;z',...
 %                        't_cont;psi','t_cont;phi','t_cont;theta'};
 % Here, the outputs are defined. They are defined as pairs of x and y data.
-% If you want to plot f_x, the horizontal axis is automatically equal to 
+% If you want to plot y (the y position of the car in the world),
+% the horizontal axis is automatically equal to 
 % the signal t_cont.
-
 figure
     plot(a.get('y','raf_path','RAF/lap5.raf','f_filt',3),'k')
 
 %%
+% ... but you can also redefine it to be another signal. Just make sure
+% they have the same size, or otherwise matlab will complain (cannot do
+% anything about that...). This now shows the path of the car (x and y
+% coordinates) as it went around the track:
 figure
     plot(a.get('x;y','raf_path','RAF/lap2.raf','f_filt',3),'k')
     axis equal
@@ -110,17 +119,20 @@ figure
     plot(a.get('f_x_s',z),'b')
     % What happens if we set the tilt coordination rate limit to Inf?
     plot(a.get('f_x_s',z,'TC_ratelimit',Inf),'g')
+    legend show
     
     subplot(3,1,2)
     plot(a.get('f_y',z),'r')
     plot(a.get('f_y_s',z),'b')
     plot(a.get('f_y_s',z,'TC_ratelimit',Inf),'g')
+    legend show
     
     subplot(3,1,3)
     plot(a.get('f_z',z),'r')
     plot(a.get('f_z_s',z),'b')
     plot(a.get('f_z_s',z,'TC_ratelimit',Inf),'g')
-return
+    legend show
+
 %%
 % It is a bit difficult to compare the output of the simulator with the
 % vehicle accelerations, because these are scaled first. It would make more
@@ -133,10 +145,12 @@ figure
     subplot(3,1,1)
     plot(a.get('f_x',z).*z.k_x,'r')
     plot(a.get('f_x_s',z),'b')
+    legend show
     
     subplot(3,1,2)
     plot(a.get('f_y',z).*z.k_y,'r')
     plot(a.get('f_y_s',z),'b')
+    legend show
 
 % The manipulation that is necessary for the z channel is a bit more
 % complicated, but that is no problem for the PData3 object:
@@ -144,22 +158,31 @@ figure
     subplot(3,1,3)
     plot((a.get('f_z',z)  +z.g).*z.k_z,'r')
     plot( a.get('f_z_s',z)+z.g,'b')
+    legend show
 %%
-% Actually, you can pretty much do all sorts of manipulations...
+% Actually, you can pretty much do all sorts of manipulations on pdata...
 
 figure
     subplot(2,2,1)
+        % divide two signals by eachother
         plot(a.get('f_z_s',z) ./ a.get('f_z',z),'r')
+        legend show
     subplot(2,2,2)
+        % calculate the total velocity of the car, by first differentiating
+        % the x and y position and then applying Pythagoras
         plot(sqrt(a.get('x',z).diff_dx.^2 + a.get('y',z).diff_dx.^2),'r')
         plot(a.get('V',z),'b--')
         xlim([1 60])
+        legend show
     subplot(2,2,3)
         plot(a.get('omega_z',z).deg,'r')
+        legend show
     subplot(2,2,4)
         plot(a.get('V',z).ms2kmh,'b-')
+        legend show
 %%
-
+% PData3 can draw bode plots if you hand it a transfer function object (or
+% something similar)
 figure
     bode(a.get('Hpx',z),'b')
     bode(a.get('Hpx',z),'r--','w',logspace(-2,2,50).')
@@ -175,7 +198,6 @@ figure
 % This branch starts after s_filterRAF.
 
 a.get('laptime',z,'raf_path','RAF/lap2.raf')
-return
 a.get('laptime',z,'raf_path','RAF/lap3.raf')
 a.get('laptime',z,'raf_path','RAF/lap4.raf')
 a.get('laptime',z,'raf_path','RAF/lap5.raf')
