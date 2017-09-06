@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>DataElephant</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Frank Drop" >
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/serif.css" id="theme">
+		<link rel="stylesheet" href="css/theme/matlab.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>DataElephant</h1>
+					<h3>A MATLAB data management tool</h3>
+					<p>
+						<small>Frank Drop</small>
+					</p>
+				</section>
+
+				<section>
+					<h6>Typical MATLAB code</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+						clc;
+						clear all;
+						close all;
+
+						d	= loadSomeData();
+						i	= loadSomeInputParameters();
+						u	= doSomethingUseful(d,i);
+						saveUsefulData(u);
+						doSomePlotting(u);
+					</code></pre>
+				</section>
+
+				<!--<section>
+					<h6>Even worse...</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+						clc;
+						clear all;
+						close all;
+
+						loadSomeData;
+						loadSomeInputParameters;
+						doSomethingUseful;
+						saveUsefulData;
+						doSomePlotting;
+					</code></pre>
+				</section>-->
+
+				<section>
+					<h6>Typical MATLAB code</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+						clc;
+						clear all;
+						close all;
+
+						%d=loadSomeData();
+						%d=loadTestData2();
+						d=loadDataNew();
+						i=loadSomeInputParameters_Test();
+
+						for K=[0 0.5 1]
+							for K_t=[1 5 10]
+								if doNew
+									u = doSomethingUsefulButSlightlyDifferent(d,i,K,K_t);
+									result(ii,jj) = u.Fx;
+								else
+									u = doSomethingUseful(d,i,K,K_t);
+									result(ii,jj) = u.Fx;
+								end
+								ii=ii+1;
+							end
+							jj=jj+1;
+						end
+
+
+						saveUsefulData(result);
+						% We forgot to save var1, var2, and var3...
+						save('extra_data','var1','var2','var3');
+						doSomePlotting(true,false,false,false,true,true,false,maybe);
+
+						figure
+							plot([0 0.5 1],result(:,2))
+							% Or, hang on, maybe it should be this?
+							plot([0 0.5 1],result(2,:))
+					</code></pre>
+				</section>
+
+				<section>
+					<h6>Problems...</h6>
+					<ul>
+						<li>Organization</li>
+						<ul>
+							<li>Did I make those changes to 'dataAnalysis3.m' or 'dataAnalysis3_new.m'?</li>
+							<li>(Out)commenting code/plots you don't need.</li>
+							<li>Where is input parameter Kpy used again? Was it doSomethingUseful1 or 2?</li>
+						</ul>
+					</ul>
+				</section>
+				<section>
+				<h6>Problems...</h6>
+					<ul>
+						<li>Execution times</li>
+						<ul>
+							<li>Loading <i>all</i> data? Or just a <i>selection</i>?</li>
+							<li>Calculating the same data over and over and over and ...</li>
+							<li>Throw away about 90% of the generated data.</li>
+							<li>Not particularly easy to distribute over multiple PCs</li>
+						</ul>
+					</ul>
+				</section>
+				<section>
+				<h6>Problems...</h6>
+					<ul>
+						<li>Data integrity</li>
+						<ul>
+							<li>Was the data in 'data_Kt1_Kp0p5.mat' generated with doSomethingUseful() or with doSomethingUseful2()?</li>
+							<li>Data storage in matrices? Not a good idea.</li>
+							<li>What was the value of this one input parameter?</li>
+						</ul>
+					</ul>
+				</section>
+				<section>
+				<h6>DataElephant</h6>
+					<ul>
+						<li>Clear separation of 'inputs', 'outputs', 'algorithms', and 'presentation'.</li>
+						<li>Stores calculated outputs in memory and on the HDD. Retrieves only those that you need.</li>
+						<li>Automatically recalculates 'outputs' if 'algorithm' changes, but only the 'output' that really changes.</li>
+						<li>Can distribute calculations over multiple PCs.</li>
+					</ul>
+				</section>
+				<section>
+				<h6>DataElephant basics</h6>
+					<ul>
+						<li>Each analysis is a <i>process</i> that consists of <i>steps</i>.</li>
+						<li>Each <i>step</i> has certain <i>inputs</i> and certain <i>outputs</i>.</li>
+						<li>You request a certain <i>output</i> through one simple command <i>get()</i>.</li>
+						<li>The <i>get()</i> command returns the <i>outputs</i> you request in a PData3 object.</li>
+						<li>The PData3 object allows for easy data manipulation and plotting.</li>
+					</ul>
+					<img src="img/overview.png" alt="" width="400px" />
+				</section>
+
+				<section>
+				<h6>Typical DataElephant <i>process definition</i> file</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+					function p = p_racingSimulator()
+						p.steps     = {@s_readRAF,@s_filterRAF};
+					end
+
+					% This example process consists of three steps:
+					% - s_readRAF. This step loads some data stored in *.RAF files
+					% - s_filterRAF. This step filters the raw data to something smooth.
+					</code></pre>
+					<img src="img/process_def.png" alt="" width="400px" />
+				</section>
+				<section>
+				<h6>Define inputs and outputs of a step</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+function step = s_readRAF()
+
+    step.name       = mfilename;
+    step.type       = 'step';
+    step.decide     = {};
+    step.baseon     = {};
+    step.input      = {'raf_path'};
+    step.optional   = {};
+    step.output     = {'t_cont;t','t_cont','t_cont;Di','t_cont;Di_cont',...
+                       't_cont;f_x_raw','t_cont;f_y_raw','t_cont;f_z_raw',...
+                       't_cont;omega_x_raw','t_cont;omega_y_raw','t_cont;omega_z_raw',...
+                       't_cont;x_raw','t_cont;y_raw','t_cont;z_raw',...
+                       't_cont;psi_raw','t_cont;phi_raw','t_cont;theta_raw',...
+                       't_cont;steer','t_cont;gear','t_cont;throttle','t_cont;clutch','t_cont;brake'};
+    step.handle     = @myfunc;
+    step.version    = 1;
+    step.saveme     = 1;
+    step.memorizeme = 1;
+
+    function [r_n] = myfunc(z,~,~,~)
+        % ...
+        f = fopen(z.raf_path);
+        % ...
+        r_n.t_cont      = % Something useful.
+        r_n.f_x_raw     = % Something useful.
+        r_n.f_y_raw     = % Something useful.
+    end
+end
+					</code></pre>
+				</section>
+                <section>
+				<img src="img/s_readRAF_def.png" alt="" height="600px" />
+				</section>
+                <section>
+				<h6>Typical DataElephant <i>presentation</i> script</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+a   = DataElephant(@p_racingSimulator);     % Tell DataElephant that we will work
+                                            % with the process 'p_racingSimulator'.
+
+figure
+    % Get the data f_x_raw from the file 'lap2.raf'
+    plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
+    % Get the data f_x_raw from the file 'lap3.raf'
+    plot(a.get('f_x_raw','raf_path','RAF/lap3.raf'),'b-')
+					</code></pre>
+				</section>
+
+
+                <section>
+				<h6>Define inputs and outputs of a step</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+function step = s_filterRAF()
+
+    step.name       = mfilename;
+    step.type       = 'step';
+    step.decide     = {};
+    step.baseon     = {};
+    step.input      = {'f_filt'};
+    step.optional   = {};
+    step.output     = {'t_cont;f_x','t_cont;f_y','t_cont;f_z',...
+                       't_cont;omega_x','t_cont;omega_y','t_cont;omega_z',...
+                       't_cont;x','t_cont;y','t_cont;z',...
+                       't_cont;psi','t_cont;phi','t_cont;theta'};
+    step.handle     = @myfunc;
+    step.version    = 1;
+    step.saveme     = 1;
+    step.memorizeme = 1;
+
+    function [r_n] = myfunc(z,r,~,~)
+        [b,a]           = butter(2,z.f_filt/50);
+
+        % ...
+
+        r_n.f_x         = filtfilt(b,a,r.f_x_raw);
+        r_n.f_y         = filtfilt(b,a,r.f_y_raw);
+        r_n.f_z         = filtfilt(b,a,r.f_z_raw);
+
+        % ...
+    end
+end
+					</code></pre>
+				</section>
+				<section>
+				<img src="img/s_filterRAF_def.png" alt="" height="600px" />
+				</section>
+
+
+
+
+				<section>
+				<h6>Typical DataElephant <i>presentation</i> script</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+a = DataElephant(@p_racingSimulator);
+
+figure
+    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',3),'r-')
+    plot(a.get('f_x','raf_path','RAF/lap3.raf','f_filt',3),'b-')
+					</code></pre>
+				</section>
+
+
+				<section>
+				<h6>Reduce the text you need to write</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+%Typing all the inputs every time is annoying...
+plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',3),'r-')
+plot(a.get('f_x','raf_path','RAF/lap3.raf','f_filt',3),'b-')
+
+% So we can store 'standard' values of the inputs in a struct:
+z.raf_path  = 'RAF/lap2.raf';
+z.f_filt    = 3;
+
+% Which is a lot shorter:
+plot(a.get('f_x',z),'r-')
+
+% If we want to have a different value than the 'standard' value, just add it to the get() call
+plot(a.get('f_x',z,'raf_path','RAF/lap3.raf'),'b-')
+					</code></pre>
+				</section>
+
+                <section>
+				<h6>What about the x-axis?</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+figure
+    plot(a.get('y','raf_path','RAF/lap2.raf','f_filt',3),'k')
+    % This is exactly the same as:
+    plot(a.get('t_cont;y','raf_path','RAF/lap2.raf','f_filt',3),'k')
+    % because this is how the output 'y' was defined in s_filterRAF:
+    % step.output     = {...,'t_cont;y',...};
+
+% We can use any other signal for the horizontal axis, as long as both
+% signals have the same dimensions.
+figure
+    plot(a.get('x;y','raf_path','RAF/lap2.raf','f_filt',3),'k')
+    axis equal
+					</code></pre>
+				</section>
+                <section>
+				<h6>A familiar example</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+% Let's send this data through a classic washout filter.
+% This happens in the step s_simClassicMCA, which takes a lot of input
+% parameters:
+
+z.modelname     = 'kuka_classic_mda_daan_carthesian';
+z.g             = 9.81;
+z.cart0         = [2.7541; 0; 3.8237];
+z.k_x           = 0.6;
+z.k_y           = 0.2;
+z.k_z           = 0.2;
+z.k_P           = 0.5;
+z.k_Q           = 0.5;
+
+% etc...
+
+% The specific force provided by the simulator is stored in variables with
+% subscript _s:
+
+figure
+    subplot(3,1,1)
+    plot(a.get('f_x',z),'r')
+    plot(a.get('f_x_s',z),'b')
+    % What happens if we set the tilt coordination rate limit to Inf?
+    plot(a.get('f_x_s',z,'TC_ratelimit',Inf),'g')
+
+    subplot(3,1,2)
+    plot(a.get('f_y',z),'r')
+    plot(a.get('f_y_s',z),'b')
+    plot(a.get('f_y_s',z,'TC_ratelimit',Inf),'g')
+
+    subplot(3,1,3)
+    plot(a.get('f_z',z),'r')
+    plot(a.get('f_z_s',z),'b')
+    plot(a.get('f_z_s',z,'TC_ratelimit',Inf),'g')
+					</code></pre>
+				</section>
+
+                <section>
+				<h6>What can PData3 do?</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+figure
+    subplot(3,1,1)
+    plot(a.get('f_x',z).*z.k_x,'r')
+    plot(a.get('f_x_s',z),'b')
+
+    subplot(3,1,2)
+    plot(a.get('f_y',z).*z.k_y,'r')
+    plot(a.get('f_y_s',z),'b')
+
+% The manipulation that is necessary for the z channel is a bit more
+% complicated, but that is no problem for the PData3 object:
+
+    subplot(3,1,3)
+    plot((a.get('f_z',z)  +z.g).*z.k_z,'r')
+    plot( a.get('f_z_s',z)+z.g,'b')
+					</code></pre>
+				</section>
+				<section>
+				<h6>What can PData3 do?</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+figure
+    subplot(2,2,1)
+        plot(a.get('f_z_s',z) ./ a.get('f_z',z),'r')
+    subplot(2,2,2)
+        plot(sqrt(a.get('x',z).diff_dx.^2 + a.get('y',z).diff_dx.^2),'r')
+        plot(a.get('V',z),'b--')
+        xlim([1 60])
+    subplot(2,2,3)
+        plot(a.get('omega_z',z).deg,'r')
+    subplot(2,2,4)
+        plot(a.get('V',z).kmh,'b-')
+					</code></pre>
+				</section>
+
+				<section>
+				<h6>Branching</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+% Now, let's say we want to calculate something trivial (such as the
+% laptime) based on data that is generated in the beginning of the process.
+% We do not want to add a step all the way at the end of the sequence of
+% steps, because then we would have to walk through ALL those steps, which
+% takes a lot of time. Instead, we can add a 'branch':
+%   p.steps     = {@s_readRAF,@s_filterRAF,@s_simClassicMCA};
+%   p.branches  = {{@s_filterRAF,@s_calculateStatistics,@d_bestLap,@s_bestLap}};
+% This branch starts after s_filterRAF.
+
+a.get('laptime',z)
+a.get('laptime',z).y
+					</code></pre>
+					<img src="img/process_branch.png" alt="" width="600px" />
+				</section>
+
+				<section>
+				<h6>Fuctions</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+% What if we want to know the laptime of all the laps we recorded?
+% We could do:
+
+a.get('laptime',z,'raf_path','RAF/lap2.raf')
+a.get('laptime',z,'raf_path','RAF/lap3.raf')
+a.get('laptime',z,'raf_path','RAF/lap4.raf')
+a.get('laptime',z,'raf_path','RAF/lap5.raf')
+a.get('laptime',z,'raf_path','RAF/lap6.raf')
+a.get('laptime',z,'raf_path','RAF/lap7.raf')
+a.get('laptime',z,'raf_path','RAF/lap8.raf')
+a.get('laptime',z,'raf_path','RAF/lap9.raf')
+a.get('laptime',z,'raf_path','RAF/lap10.raf')
+
+allLaps =  {'RAF/lap2.raf';'RAF/lap3.raf';'RAF/lap4.raf';...
+            'RAF/lap5.raf';'RAF/lap6.raf';'RAF/lap7.raf';...
+            'RAF/lap8.raf';'RAF/lap9.raf';'RAF/lap10.raf'};
+% This has to be a cell column vector
+
+a.get('laptime',z,'raf_path',allLaps).y
+
+figure
+    plot(a.get('laptime',z,'raf_path',allLaps),'r')
+
+					</code></pre>
+				</section>
+
+				<section>
+				<h6>Decisions</h6>
+					<pre><code class="matlab" data-trim contenteditable>
+function step = d_bestLap()
+
+    step.name       = mfilename;
+    step.type       = 'decision';
+    step.decide     = 'raf_path';
+    step.basedon    = {'laptime'};
+    step.input      = {};
+    step.optional   = {};
+    step.output     = {};
+    step.handle     = @myfunc;
+    step.version    = 1;
+    step.saveme     = 1;
+    step.memorizeme = 1;
+
+    function idx = myfunc(~,r,~,~)
+
+        [~,idx]     = min([r.laptime{:}]);
+
+    end
+end
+
+figure
+    for ii=1:length(allLaps)
+        plot(a.get('Di_cont;f_y',z,'raf_path',allLaps{ii}),'r')
+    end
+    plot(a.get('Di_cont;f_y_best',z,'raf_path',allLaps),'b--')
+    </code></pre>
+				</section>
+            <section>
+				<h6>Todo</h6>
+                <ul>
+					<li>Making sure your code works with DataElephant</li>
+					<li>Improved implementation of the 'decisions'</li>
+					<li>3D plotting (surf, contour) is almost working</li>
+					<li>"Export" function to take data "home"</li>
+					<li>Advanced support for optimization algorithms (iterations)</li>
+					<li>Documentation</li>
+				</ul>
+			</section>
+
+            <section>
+				<h6>The end</h6>
+                <ul>
+					<li>Advanced: distribution of calculations over multiple PCs.</li>
+					<li>Find it on https://gitlab.tuebingen.mpg.de/</li>
+				</ul>
+			</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// More info https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+				markdown: {
+				        smartypants: true
+    				},
+
+				transition: 'fade', // none/fade/slide/convex/concave/zoom
+
+				// More info https://github.com/hakimel/reveal.js#dependencies
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
