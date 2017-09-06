@@ -86,6 +86,11 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
     obj.steps               = [];
     for oo=1:length(obj.process.steps)
         
+        if exist(func2str(obj.process.steps{oo})) ~= 2
+            error('The process %s refers to step %s, but this step is not on your path.',...
+                obj.createLink(func2str(obj.fHandle)),obj.createLink(func2str(obj.process.steps{oo})))
+        end
+        
         step                        = obj.process.steps{oo}();
         obj.steps(oo).number        = oo;
         obj.steps(oo).name          = step.name;

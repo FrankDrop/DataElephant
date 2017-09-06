@@ -6,6 +6,10 @@ clear all
 
 a   = DataElephant(@p_pdata3demo,'verbose','no','win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 
+% This demo is simply a demonstration of all the data manipulations the
+% PData3 object supports. At the moment it is far from exhaustive, but a
+% useful introduction into PData3.
+
 %%
 close all
 pobj    = a.get('sine','dt',0.01,'T',20,'f',0.1);
