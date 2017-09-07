@@ -2,5 +2,4 @@
 *.mexa64
 *.pdb
 *slprj*
-@DataElephant/config.m
 *.m~
