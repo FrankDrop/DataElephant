@@ -23,5 +23,6 @@ function [s] = config(obj, hostname)
             s.addfinalstep          = 'yes';
             s.continueonerror       = 'yes';
             s.hostname              = []; 
+            s.sql                   = 'no';
     end
 end

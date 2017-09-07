@@ -4,10 +4,12 @@ clear all
 
 %%
 
-a   = DataElephant(@p_pdata3demo,'verbose','no','win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
+a   = DataElephant(@p_pdata3demo,'verbose','no',...
+                    'unix_root','/home/fdrop/StorageElephants','unix_tempfolder','/home/fdrop/TemporaryElephants',...
+                    'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 
 % This demo is simply a demonstration of all the data manipulations the
-% PData3 object supports. At the moment it is far from exhaustive, but a
+% PData3 object supports. This demo is far from exhaustive, but a
 % useful introduction into PData3.
 
 %%

@@ -7,6 +7,7 @@ clear all
 % p_racingSimulator.
 
 a   = DataElephant(@p_racingSimulator,'verbose','no',...
+                    'unix_root','/home/fdrop/StorageElephants','unix_tempfolder','/home/fdrop/TemporaryElephants',...
                     'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');    
 a.info
 
@@ -50,8 +51,8 @@ figure
 
 figure
     plot(a.get('f_x_raw','raf_path','RAF/lap2.raf'),'r-')
-    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',4),'b-')
-    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',1),'g-')
+    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',4),'b-','DisplayName','f_x, filter corner freq. 4 Hz')
+    plot(a.get('f_x','raf_path','RAF/lap2.raf','f_filt',1),'g-','DisplayName','f_x, filter corner freq. 1 Hz')
     legend show
     
 % Note that if you change the value for 'f_filt' only step s_filterRAF is
