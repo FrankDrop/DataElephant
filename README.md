@@ -19,19 +19,19 @@ E. Create a new folder for temporary storage of data. For example:
 - On windows, create  D:/TemporaryElephants
 - On linux, create /home/fdrop/TemporaryElephants
 
-F. You need to tell DataElephant about these two folders. There are several options:
+F. You need to tell DataElephant about these two folders. There are two options:
 
-1. Edit the @DataElephant/config.m file
+1. Edit the @DataElephant/config.m file.
 
-    a. Find your hostname, by typing [~, name] = system('hostname'). For example: name = 'JohnDoeDesktop'
+    a. Find your hostname, by typing [~, name] = system('hostname'). For example, if your hostname is 'JohnDoeDesktop', this command would return: name = 'JohnDoeDesktop'
 
-    b. Copy+paste from one of the example cases and modify the case to your hostname. For example: case 'JohnDoeDesktop'
+    b. Copy+paste the list of options from the 'otherwise' case inside @DataElephant/config.m, and modify the case expression to your hostname. For example: case 'JohnDoeDesktop'
 
     c. On Windows, change s.win_root to the path to your storage folder. For example: s.win_root = 'D:/StorageElephants';
 
     d. On Windows, change s.win_temp to the path to your temporary storage folder. For example: s.win_temp = 'D:/TemporaryElephants';
 
-    e. On Linux, change s.unix_root to to the path to your storage folder. For example: s.unix_root = '/home/fdrop/StorageElephants';
+    e. On Linux, change s.unix_root to the path to your storage folder. For example: s.unix_root = '/home/fdrop/StorageElephants';
 
     f. On Linux, change s.unix_temp to the path to your temporary storage folder. For example: s.win_temp = '/home/fdrop/TemporaryElephants';
 
@@ -43,7 +43,7 @@ F. You need to tell DataElephant about these two folders. There are several opti
     b. On Linux, create a DataElephant object with the options 'unix_root' and 'unix_temp' set to the paths of your storage and temporary storage folders.
         For example: a = DataElephat(@example,'unix_root','D:/StorageElephants','unix_temp','D:/TemporaryElephants');
 
-3. Note that options set while creating a new DataElephant object always override options set in the config file.
+Note that options set while creating a new DataElephant object always override options set in the config file.
 
 G. Open the file 'demo.m' in one of the folders inside the examples folder.
-Make sure that the 'win_root', 'win_temp', 'unix_root', and 'unix_temp' options are either removed (when you edited the config file) or set to the correct folder (see F.2).
+Make sure that the current 'win_root', 'win_temp', 'unix_root', and 'unix_temp' options are either removed (when you edited the config file) or set to the correct folder (see F.2).
