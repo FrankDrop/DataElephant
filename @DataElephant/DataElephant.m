@@ -171,6 +171,8 @@ classdef DataElephant < handle
         id      = lastCommonHash(obj,id_req_s);
         id_hex  = hexhash(obj,dec_hash,varargin);
         
+        [atStep, names_stripped, names_raw, names_unequal ] = prepareBranchAndNames(obj, name )
+        
         rootfolder  = getRootFolder(obj);
         rootfolder  = getTempFolder(obj);
         rootfolder  = getDistFolder(obj);
@@ -229,6 +231,6 @@ classdef DataElephant < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
-        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,names_unequal,f,fn,fv,ll);
+        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll);
     end
 end

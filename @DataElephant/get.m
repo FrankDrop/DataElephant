@@ -12,81 +12,14 @@ function [r,id_cum] = get(obj,name,varargin)
         z                   = obj.args(z_thisCall);
     end
     
-    ccc = onCleanup(@()cleanexit(obj,'get'));
+    ccc = onCleanup(@()cleanexit(obj,'get'));    
     
-    names_raw       = regexp(name,';','split');
-    if length(names_raw) == 1
-        names_raw{2} = names_raw{1};
-    end
+    [atStep, names_stripped, names_raw] = prepareBranchAndNames(obj,name);
     
-    names_stripped  = cell(size(names_raw));
-    names_unequal   = false;
-    
-    for oo=1:length(names_raw)
-        strip_special1      = regexprep(names_raw{oo},'@','');
-        names_unequal       = names_unequal | ~strcmp(names_raw{oo},strip_special1);
-        names_raw{oo}       = strip_special1;
-        
-        strip_special       = regexp(strip_special1,'(?<=squeeze\().*(?=\))[.'']*','match');        
-        if isempty(strip_special)
-            strip_special       = strip_special1;
-        else
-            strip_special       = strip_special{1};
-        end
-        names_stripped{oo}      = regexprep(strip_special,'\([,a-zA-Z0-9:()'']*\)[.'']*','');
-    end
-    
-
-    if strcmp(names_stripped{1},names_stripped{2})
-        [atBranch(2),atStep(2)] = updateTree(obj,names_stripped{2});
-        
-        if ~isempty(obj.x_output.(names_stripped{2}))
-            names_stripped{1}       = obj.x_output.(names_stripped{2});
-            names_raw{1}            = obj.x_output.(names_stripped{2});
-            
-            [atBranch(1),atStep(1)] = updateTree(obj,names_stripped{1});
-            [atBranch(2),atStep(2)] = updateTree(obj,names_stripped{2});
-        else
-            atBranch(1)     = atBranch(2);
-            atStep(1)       = atStep(2);
-        end
-    else
-        atBranch    = -1*ones(size(names_stripped));
-        atStep      = -1*ones(size(names_stripped));
-
-        for oo=1:length(names_stripped)
-            [atBranch(oo),atStep(oo)] = updateTree(obj,names_stripped{oo});
-        end
-    end
-
-    if any([atBranch,atStep] == -1)
-        error('Something went wrong');
-    end
-    
-    if (any(diff(atBranch) ~= 0))
-        % We might be able to recover... if one of the results if from the
-        % main branch:
-        if any(atBranch == 0)
-            % Update the tree to 
-            updateTree(obj,names_stripped{atBranch ~= 0});
-            foundIt = false;
-            for oo=1:length(obj.steps)
-                if any(strcmp(obj.steps(oo).output,names_stripped{atBranch == 0}))
-                    foundIt = true;
-                end
-            end
-            
-            if ~foundIt
-                error('I can only combine data from the same branch.');
-            end
-        else
-            error('I can only combine data from the same branch.');
-        end
-    end
-
     minStep     = min(atStep);
-    maxStep     = max(atStep);
+    maxStep     = max(atStep);    
     
+    % Check whether the provided inputs are indeed required by this process
     t_inputs = fieldnames(z);
     for oo=1:length(t_inputs)
         if ~any(strcmp(t_inputs{oo},obj.allInputs))
@@ -97,15 +30,23 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
 
+    
+    
+    % Check whether the requested outputs are indeed produced by this process
     for oo=1:length(names_stripped)
         if ~any(strcmp(names_stripped{oo},obj.allOutputs))
             error('This process does not produce requested output %s.',names_stripped{oo});
         end
     end
 
+    
+    
+    % Determine until which step we have to proceed
     untilStepNumber = maxStep;
     pverbose(obj,'The requested result %s is an output of step %i (%s).\n',name,untilStepNumber,obj.steps(untilStepNumber).name);
 
+    
+    
     
     % Check whether all the arguments are either numeric, cells or chars    
     zflds   = fieldnames(z);
@@ -115,11 +56,9 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
     
-    % Pre-construct the z objects that are necessary later, to
-    % prevent that you constantly have to build them again and
-    % again.
-    z_cum   = cell(untilStepNumber,1);
-    z_step  = cell(untilStepNumber,1);
+    
+    
+    
     
     
     % Check if there are any decisions to be taken between just one option
@@ -131,6 +70,14 @@ function [r,id_cum] = get(obj,name,varargin)
             end
         end
     end
+    
+    
+    
+    % Pre-construct the z objects that are necessary later, to
+    % prevent that you constantly have to build them again and
+    % again.
+    z_cum   = cell(untilStepNumber,1);
+    z_step  = cell(untilStepNumber,1);
 
     for ii=1:untilStepNumber
         if ii > 1
@@ -206,13 +153,16 @@ function [r,id_cum] = get(obj,name,varargin)
             end
         end
     end
-            
-%     if nargout == 0
-%         [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,true);
-   if nargout <= 1
+
+    
+    
+    % After all the preparation, we are ready to actually get some results:
+    
+    
+    if nargout <= 1
         [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,false);
-        
-        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,names_unequal,f,{},{},1);
+
+        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,f,{},{},1);
         r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
     end
 

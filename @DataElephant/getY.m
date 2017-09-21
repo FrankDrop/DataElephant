@@ -1,26 +1,14 @@
-function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,names_unequal,f,fn,fv,ll)
+function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
 
     if isempty(f) % f contains the functional. if it is empty, we only have one result.
         
-        if length(names_stripped) == 1
-            error('I don''t think we can end up here anymore...');
-            x   = r.(names_stripped{1});
-            y   = r.(names_stripped{1});            
-        else
-            x   = r.(names_stripped{1});
-            y   = r.(names_stripped{2});
-            
-            if ~(strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
-                if strcmp(names_raw{1},names_raw{2})
-                    x           = reshape(1:numel(y),size(y));
-                else
-                    x           = eval(strrep(names_raw{1},names_stripped{1},'x'));
-                end
+        x   = r.(names_stripped{1});
+        y   = r.(names_stripped{2});
 
-                y   = eval(strrep(names_raw{2},names_stripped{2},'y'));
-            end
+        if ~(strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
+            x   = eval(strrep(names_raw{1},names_stripped{1},'x'));
+            y   = eval(strrep(names_raw{2},names_stripped{2},'y'));
         end
-        
     else
         fn{ll}  = f.this.name;
         fv{ll}  = f.this.value;
