@@ -78,7 +78,7 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
             f_i = f.sub;
             y_i = cell(length(f.this.value),1);
             for oo=1:length(f.this.value)
-                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},names_stripped,names_raw,names_unequal,f_i,fn,fv,ll+1);
+                [x,y_oo,fn_i,fv_i]  = getY(obj,r{oo},names_stripped,names_raw,f_i,fn,fv,ll+1);
                 y_i{oo}             = y_oo;
             end
             

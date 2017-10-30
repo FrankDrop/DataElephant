@@ -21,7 +21,6 @@ classdef PData3 < matlab.mixin.Copyable
         end
         
         function xrms = rms_(x,dim)
-%             xrms = sqrt((1./size(x,dim)) * sum(x.^2,dim));
             xrms = sqrt(mean(x .* conj(x),dim));
         end
         
@@ -471,6 +470,15 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = nobj.genericmath('conj',@(x,d)conj(x),[],[],false);
         end
         
+        function nobj = cumsum(pobj,dim)
+            nobj    = pobj.copy;
+            if nargin == 1
+                nobj    = nobj.genericxymath('cumsum',@(x,d)cumsum(x,d),1);
+            else
+                nobj    = nobj.genericxymath('cumsum',@(x,y,d)cumsum(x,y,d),dim);
+            end
+        end
+        
         function nobj = cumtrapz(pobj,dim)
             nobj    = pobj.copy;
             if nargin == 1
@@ -653,6 +661,11 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nanmeanover(obj,over,varargin)
             nobj = obj.genericmathover('mean',@nanmean,@(x,d)nanstd(x,1,d),over,true,varargin{:});
+        end
+        
+        function nobj = cumsumover(pobj,over,varargin)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmathover('cumsum',@(x,d)cumsum(x,d),[],over,false,varargin{:});
         end
 
         function nobj = cumtrapzover(pobj,over,varargin)
@@ -1272,7 +1285,7 @@ classdef PData3 < matlab.mixin.Copyable
             
             
             
-            if isa(H,'idpoly') || isa(H,'tf') || isa(H,'ss')
+            if isa(H,'idpoly') || isa(H,'tf') || isa(H,'ss') || isa(H,'idtf')
                 H_tauCor    = ones(size(z.w));
                 
                 if isfield(H.UserData,'tau_iSignals')

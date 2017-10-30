@@ -8,7 +8,7 @@ clear all
 
 a   = DataElephant(@p_racingSimulator,'verbose','no',...
                     'unix_root','/home/fdrop/StorageElephants','unix_tempfolder','/home/fdrop/TemporaryElephants',...
-                    'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');    
+                    'win_root','D:\StorageElephants','win_tempfolder','D:\TemporaryElephants');
 a.info
 
 %%
