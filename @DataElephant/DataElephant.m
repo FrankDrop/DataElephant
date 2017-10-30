@@ -231,6 +231,10 @@ classdef DataElephant < handle
         mssg = receiveUDP(obj,port);
         
         obj = uniqueHashes(obj,silent);
+<<<<<<< HEAD
         [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll);
+=======
+        [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,names_unequal,f,fn,fv,ll);
+>>>>>>> 5b5e7ee5e88e5d5fd67c424534dc197bbc9601e5
     end
 end

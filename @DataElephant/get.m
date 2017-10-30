@@ -45,9 +45,6 @@ function [r,id_cum] = get(obj,name,varargin)
     untilStepNumber = maxStep;
     pverbose(obj,'The requested result %s is an output of step %i (%s).\n',name,untilStepNumber,obj.steps(untilStepNumber).name);
 
-    
-    
-    
     % Check whether all the arguments are either numeric, cells or chars    
     zflds   = fieldnames(z);
     for oo=1:length(zflds)
@@ -154,10 +151,7 @@ function [r,id_cum] = get(obj,name,varargin)
         end
     end
 
-    
-    
     % After all the preparation, we are ready to actually get some results:
-    
     
     if nargout <= 1
         [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,false);
