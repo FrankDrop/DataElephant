@@ -449,6 +449,13 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = nobj.genericmath('abs',@(x,d)abs(x),[],[],false);
         end
         
+        function nobj = minval(pobj,val)
+            nobj    = pobj.copy;
+            % Because the abs function is not really taken over a certain
+            % dimension, you provide [] as last argument.
+            nobj.y  = max(nobj.y,val); %genericmath('minval',@(x,d)min(x,val),[],[],false);
+        end
+        
         function nobj = real(pobj)
             nobj    = pobj.copy;
             % Because the abs function is not really taken over a certain
@@ -911,102 +918,6 @@ classdef PData3 < matlab.mixin.Copyable
                 set(z.Axis,'XTickLabel',xlbl)
             end
         end
-
-%         function varargout = confidenceInterval(obj,varargin)
-% 
-%             assert(any(strcmp('subject',obj.fNames)),'At least one of the functionals should be called ''subject''.');
-%             assert(length(obj.fNames) < 3,'This function works with two functionals maximum. You have %i:\n%s.',length(obj.fNames),sprintf('- %s\n',obj.fNames{:}));
-%             
-%             if length(obj.fNames) == 2
-%                 subjectF    = find(strcmp(obj.fNames,'subject'));
-%                 if subjectF == 1
-%                     otherF          = 2;
-%                     yt              = squeeze(obj.y).';
-%                     xt              = obj.fValues{2};
-%                 else
-%                     otherF          = 1;
-%                     yt              = squeeze(obj.y);
-%                     xt              = obj.fValues{1};
-%                 end
-%                 
-%                 assert(strcmp(obj.fNames{otherF},obj.xAxis),'You should explicitly set the horizontal axis to ''%s''.',obj.fNames{otherF});
-%             elseif length(obj.fNames) == 1
-%                 assert(isvector(obj.x),'The x data should be a vector.');
-%                 yt              = squeeze(obj.y).';
-%                 xt              = obj.x;
-%             else
-%                 error('Huh?');               
-%             end
-% 
-%             if ~isempty(yt)
-%                 % CONFIDENCE1D  Calculate the 95% confidence intervals corrected for
-%                 % between-subject variance.
-%                 %
-%                 %     CONFIDENCE1D(data) with data an [M,N] matrix with N = number of
-%                 %     subjects and M = number of conditions.
-% 
-%                 subject_mean        = nanmean(yt,1);
-%                 grand_mean          = nanmean(subject_mean,2);
-% 
-%                 adjustment_factor   = grand_mean * ones(size(subject_mean)) - subject_mean;
-%                 adjusted_data       = yt + ones(size(yt,1),1) * adjustment_factor;
-% 
-%                 zTable =    [2 4.3;
-%                              3 3.18;
-%                              4 2.78;
-%                              5 2.57;
-%                              6 2.45;
-%                              7 2.36;
-%                              8 2.31;
-%                              9 2.26;
-%                              10 2.23;
-%                              11 2.2;
-%                              12 2.18;
-%                              13 2.16;
-%                              14 2.14;
-%                              15 2.13;
-%                              16 2.12;
-%                              30 2.04;
-%                              90 1.99;
-%                              400 1.97];
-% 
-%                 zv = interp1(zTable(:,1),zTable(:,2),size(yt,2)-1,'linear');
-%                 
-%                 
-%                 
-%                 if nargout < 2 
-%                     if any(iscell(xt))
-%                         set(gca,'XTick',1:length(xt));
-%                         set(gca,'XTickLabel',xt);
-%                         xlim([0 length(xt)+1])
-%                     else
-%                         xlim([min(xt) max(xt)])
-%                     end
-%                     
-%                     [z,unm] = obj.parseGrayScalePlotInput(varargin{:});
-%                 
-%                     h = errorbar(xt,...
-%                                  nanmean(adjusted_data,2),...
-%                                  zv*nanstd(adjusted_data,[],2)./sqrt(size(yt,2)),...
-%                                  zv*nanstd(adjusted_data,[],2)./sqrt(size(yt,2)),...
-%                                  z.LineSpec); hold on
-% 
-%                     flds = fieldnames(unm);
-%                     for oo=1:length(flds)
-%                         h.(flds{oo}) = unm.(flds{oo});
-%                     end
-%                     h = obj.setGrayScaleProperties(h,z);
-%                 
-%                     if nargout == 1
-%                         varargout{1} = h;
-%                     end
-%                 elseif nargout == 3
-%                     varargout{1} = xt;
-%                     varargout{2} = nanmean(adjusted_data,2);
-%                     varargout{3} = zv*nanstd(adjusted_data,[],2)./sqrt(size(yt,2));
-%                 end
-%             end
-%         end
         
         function h = varline(obj,varargin)
             [z,unm] = obj.parsePlotInput(varargin{:});
@@ -1692,98 +1603,172 @@ classdef PData3 < matlab.mixin.Copyable
 %             end
 %         end
 
-%         function [h1,h2] = contour_resample_hatched(obj,level,x0,plotProperties,hatchProperties,varargin)
-% 
-%             p = inputParser;
-%             p.CaseSensitive = true;
-%             p.addParameter('interpolate','no');
-%             p.addParameter('plotfnc',@plot);
-%             p.parse(varargin{:});
-%             z = p.Results;
-%             
-%             if ~iscell(plotProperties) || ~iscell(hatchProperties)
-%                 error('You have to specify the plot and hatchline properties as separate cells.');
-%             end
-% 
-%             if length(obj.fValues) == 1
-%                 if strcmp(obj.xAxis,obj.fNames{1})
-%                     % We want to use one of the function values as
-%                     % horizontal axis
-%                     x_this  = obj.fValues{1};
-%                     y_this  = obj.x;
-%                     z_this  = squeeze(obj.y);
-%                 elseif strcmp(obj.xAxis,'x')
-%                     % The horizontal axis was not explicitly set to a
-%                     % function value, so we'll just take the first one to
-%                     % be the x data.
-%                     x_this  = obj.x;
-%                     y_this  = obj.fValues{1};
-%                     z_this  = squeeze(obj.y).';
-%                 else
-%                     error('Something went wrong.');
-%                 end
-%             elseif length(obj.fValues) == 2
-%                 % We assume that we want to use the two function axes for
-%                 % the x and y axes, and use the x data to base the contour
-%                 % on.
-% 
-%                 % Now figure out what function we want to use as horizontal
-%                 % axis.                
-%                 if strcmp(obj.xAxis,obj.fNames{1})
-%                     % We want to use one of the function values as
-%                     % horizontal axis
-%                     x_this  = obj.fValues{1};
-%                     y_this  = obj.fValues{2};
-%                     z_this  = squeeze(obj.y).';
-%                 elseif strcmp(obj.xAxis,obj.fNames{2})
-%                     x_this  = obj.fValues{2};
-%                     y_this  = obj.fValues{1};
-%                     z_this  = squeeze(obj.y);
-%                 else
-%                     error('Something went wrong.');
-%                 end
-%             end
-% 
-%             if size(z_this,2) == length(x_this) && size(z_this,1) == length(y_this)
-%                 if length(level) == 1 && all(level == 1)
-%                     lvl     = [level level];
-%                 else
-%                     lvl     = level;                    
-%                 end
-%                 
-%                 C   = contourc(x_this,y_this,z_this,lvl);
-%                 
-%                 if isempty(C)
-%                     error('There is no contour at this level.')
-%                 end
-%                 
-%                 startIdx    = 1;
-%                 while startIdx < size(C,2)
-%                     thisLength  = C(2,startIdx);
-% 
-%                     xC      = C(1,(startIdx+1):(startIdx+thisLength));
-%                     yC      = C(2,(startIdx+1):(startIdx+thisLength));
-%                                         
-%                     xT                  = x0;
-%                     xT(xT < min(xC))    = [];
-%                     xT(xT > max(xC))    = [];
-%                     
-%                     if strcmp(z.interpolate,'yes')                    
-%                         y0      = interp1(xC,yC,xT);
-%                         h1      = plotter(obj,z.plotfnc,xT,y0,plotProperties{:});
-%                         h2      = plotter(obj,@hatchedline,xT,y0,hatchProperties{:}); hold on
-%                     else
-%                         h1      = plotter(obj,z.plotfnc,xC,yC,plotProperties{:});
-%                         h2      = plotter(obj,@hatchedline,xC,yC,hatchProperties{:}); hold on                        
-%                     end
-%                     set(h1,'Tag','Line');
-%                     set(h2,'Tag','Line');
-%                     startIdx    = startIdx+thisLength+1;
-%                 end
-%             else
-%                 error('Something wrong with the dimensions.');
-%             end
-%         end
+        function [h1,h2] = contour(obj,varargin) %,level,x0,plotProperties,hatchProperties
+
+            p = inputParser;
+            p.CaseSensitive = true;
+            p.addParameter('level',[]);
+            p.addParameter('x0',[]);
+            p.addParameter('plotProperties',{},@(x)iscell(x));
+            p.addParameter('hatchProperties',{},@(x)iscell(x));
+            p.addParameter('interpolate','no');
+            p.addParameter('plotfnc',@plot);
+            p.parse(varargin{:});
+            z = p.Results;
+            
+            if length(obj.fValues) == 1
+                if strcmp(obj.xAxis,obj.fNames{1})
+                    % We want to use one of the function values as
+                    % horizontal axis
+                    x_this  = obj.fValues{1};
+                    y_this  = obj.x;
+                    z_this  = squeeze(obj.y);
+                elseif strcmp(obj.xAxis,'x')
+                    % The horizontal axis was not explicitly set to a
+                    % function value, so we'll just take the first one to
+                    % be the x data.
+                    x_this  = obj.x;
+                    y_this  = obj.fValues{1};
+                    z_this  = squeeze(obj.y).';
+                else
+                    error('Something went wrong.');
+                end
+            elseif length(obj.fValues) == 2
+                % We assume that we want to use the two function axes for
+                % the x and y axes, and use the x data to base the contour
+                % on.
+
+                % Now figure out what function we want to use as horizontal
+                % axis.                
+                if strcmp(obj.xAxis,obj.fNames{1})
+                    % We want to use one of the function values as
+                    % horizontal axis
+                    x_this  = obj.fValues{1};
+                    y_this  = obj.fValues{2};
+                    z_this  = squeeze(obj.y).';
+                elseif strcmp(obj.xAxis,obj.fNames{2})
+                    x_this  = obj.fValues{2};
+                    y_this  = obj.fValues{1};
+                    z_this  = squeeze(obj.y);
+                else
+                    error('Something went wrong.');
+                end
+            end
+
+            if size(z_this,2) == length(x_this) && size(z_this,1) == length(y_this)
+                if length(z.level) == 1 && all(z.level == 1)
+                    lvl     = [z.level z.level];
+                else
+                    lvl     = z.level;
+                end
+                
+                if isempty(lvl)
+                    C   = contourc(x_this,y_this,z_this);
+                else
+                    C   = contourc(x_this,y_this,z_this,lvl);
+                end
+                
+                if isempty(C)
+                    error('There is no contour at this level.')
+                end
+                
+                startIdx    = 1;
+                while startIdx < size(C,2)
+                    thisLength  = C(2,startIdx);
+
+                    xC      = C(1,(startIdx+1):(startIdx+thisLength));
+                    yC      = C(2,(startIdx+1):(startIdx+thisLength));
+                                        
+                    xT                  = z.x0;
+                    xT(xT < min(xC))    = [];
+                    xT(xT > max(xC))    = [];
+                    
+                    if strcmp(z.interpolate,'yes')                    
+                        y0      = interp1(xC,yC,xT);
+                        h1      = plotter(obj,z.plotfnc,xT,y0,z.plotProperties{:});
+                        set(h1,'Tag','Line');
+                        if ~isempty(z.hatchProperties)
+                            h2      = plotter(obj,@hatchedline,xT,y0,z.hatchProperties{:}); hold on
+                            set(h2,'Tag','Line');
+                        end
+                    else
+                        h1      = plotter(obj,z.plotfnc,xC,yC,z.plotProperties{:},'DisplayName',num2str(C(1,startIdx)));
+                        set(h1,'Tag','Line');
+                        if ~isempty(z.hatchProperties)
+                            h2      = plotter(obj,@hatchedline,xC,yC,z.hatchProperties{:}); hold on                        
+                            set(h2,'Tag','Line');
+                        end
+                    end
+                    startIdx    = startIdx+thisLength+1;
+                end
+            else
+                error('Something wrong with the dimensions.');
+            end
+        end
+        
+        function [h1,h2] = mesh(obj,varargin) %,level,x0,plotProperties,hatchProperties
+
+            p = inputParser;
+            p.CaseSensitive = true;
+            p.addParameter('plotProperties',{},@(x)iscell(x));
+            p.addParameter('xScale','linear');
+            p.addParameter('yScale','linear');
+            p.addParameter('zScale','linear');
+            p.addParameter('plotfnc',@plot);
+            p.parse(varargin{:});
+            z = p.Results;
+            
+            if length(obj.fValues) == 1
+                if strcmp(obj.xAxis,obj.fNames{1})
+                    % We want to use one of the function values as
+                    % horizontal axis
+                    x_this  = obj.fValues{1};
+                    y_this  = obj.x;
+                    z_this  = squeeze(obj.y);
+                elseif strcmp(obj.xAxis,'x')
+                    % The horizontal axis was not explicitly set to a
+                    % function value, so we'll just take the first one to
+                    % be the x data.
+                    x_this  = obj.x;
+                    y_this  = obj.fValues{1};
+                    z_this  = squeeze(obj.y).';
+                else
+                    error('Something went wrong.');
+                end
+            elseif length(obj.fValues) == 2
+                % We assume that we want to use the two function axes for
+                % the x and y axes, and use the x data to base the contour
+                % on.
+
+                % Now figure out what function we want to use as horizontal
+                % axis.                
+                if strcmp(obj.xAxis,obj.fNames{1})
+                    % We want to use one of the function values as
+                    % horizontal axis
+                    x_this  = obj.fValues{1};
+                    y_this  = obj.fValues{2};
+                    z_this  = squeeze(obj.y).';
+                elseif strcmp(obj.xAxis,obj.fNames{2})
+                    x_this  = obj.fValues{2};
+                    y_this  = obj.fValues{1};
+                    z_this  = squeeze(obj.y);
+                else
+                    error('Something went wrong.');
+                end
+            end
+
+            if size(z_this,2) == length(x_this) && size(z_this,1) == length(y_this)
+                
+                [X,Y]   = meshgrid(x_this,y_this);
+                C       = mesh(X,Y,z_this);
+                
+                set(gca,'XScale',z.xScale);
+                set(gca,'YScale',z.yScale);
+                set(gca,'ZScale',z.zScale);
+            else
+                error('Something wrong with the dimensions.');
+            end
+        end
 
 %         function h = semilogxmesh(PDataobj,varargin)
 %             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
@@ -1830,26 +1815,26 @@ classdef PData3 < matlab.mixin.Copyable
 %             end
 %         end
 
-        function h = logloglogsurf(PDataobj,varargin)
-            if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,2) && size(PDataobj.y,3) == size(PDataobj.f2,3)
-                h   = surf(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-                set(gca, 'XScale', 'log', 'YScale', 'log', 'ZScale', 'log')
-            else
-                error('I am sorry, but I don''t think I can plot this data set...')
-            end
-        end
-
-        function h = scatter3(PDataobj,varargin)
-            if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-                pz      = squeeze(PDataobj.y);
-                pf1     = repmat(PDataobj.f1,size(PDataobj.y,3),1);
-                pf2     = repmat(PDataobj.f2,1,size(PDataobj.y,2))';
-
-                h = scatter3(pf1,pf2(:),pz(:),varargin{:});
-            else
-                error('I am sorry, but I don''t think I can plot this data set...')
-            end
-        end
+%         function h = logloglogsurf(PDataobj,varargin)
+%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,2) && size(PDataobj.y,3) == size(PDataobj.f2,3)
+%                 h   = surf(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
+%                 set(gca, 'XScale', 'log', 'YScale', 'log', 'ZScale', 'log')
+%             else
+%                 error('I am sorry, but I don''t think I can plot this data set...')
+%             end
+%         end
+% 
+%         function h = scatter3(PDataobj,varargin)
+%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
+%                 pz      = squeeze(PDataobj.y);
+%                 pf1     = repmat(PDataobj.f1,size(PDataobj.y,3),1);
+%                 pf2     = repmat(PDataobj.f2,1,size(PDataobj.y,2))';
+% 
+%                 h = scatter3(pf1,pf2(:),pz(:),varargin{:});
+%             else
+%                 error('I am sorry, but I don''t think I can plot this data set...')
+%             end
+%         end
 
     %% Unit conversion functions
 
@@ -2016,12 +2001,12 @@ classdef PData3 < matlab.mixin.Copyable
             end
             
             nobj    = pobj.copy;
-            nobj.x  = pobj.x(1:(end-1));
-            nobj.y  = diff(nobj.y,varargin{:})./dt;
-            
             if nargin > 1
                 numDiff = varargin{1};
             end
+            
+            nobj.y  = diff(nobj.y,varargin{:})./dt.^numDiff;
+            nobj.x  = pobj.x(1:(end-1*numDiff));
             
             if numDiff > 1
                 nobj.myName     = sprintf('d^%i(%s)/dt^%i',numDiff,nobj.myName,numDiff);

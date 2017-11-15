@@ -168,7 +168,12 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
         
         for ii=1:length(step.output)
             [x_out, actualOutput{ii}]           = obj.splitOutput(step.output{ii});
-            obj.x_output.(actualOutput{ii})     = x_out;
+            
+            if isvarname(actualOutput{ii})
+                obj.x_output.(actualOutput{ii})     = x_out;
+            else
+                error('Step %s declared output %s, but this is not a valid name for a MATLAB variable.',obj.createLink(step.name),actualOutput{ii})
+            end
         end
         
         step.output     = actualOutput;

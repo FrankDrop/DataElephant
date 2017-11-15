@@ -48,9 +48,7 @@ function [atStep, names_stripped, names_raw ] = prepareBranchAndNames(obj, name 
     if strcmp(names_stripped{2},'$')
         names_stripped{2} = names_stripped{1};
     end
-    
-    
-%     if strcmp(names_stripped{1},names_stripped{2})
+
     if bareRequest
         [atBranch(2),atStep(2)] = updateTree(obj,names_stripped{2});
         
