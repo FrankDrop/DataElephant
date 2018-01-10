@@ -3,34 +3,26 @@ function [r,id_cum] = get(obj,name,varargin)
     t_getStart          = tic;
     obj.getTime         = 0;
 
-    z_thisCall          = obj.args(varargin{:});
-    thisCallInputNames  = fieldnames(z_thisCall);
+    [z_thisCall,z_nuf]  = obj.args(varargin{:});
     
-    if ~isempty(obj.z_default)
-        z                   = obj.args(obj.z_default,z_thisCall);
-    else
-        z                   = obj.args(z_thisCall);
+    if ~isempty(z_nuf)
+        assert(iscell(z_nuf) && mod(length(z_nuf),2) == 0 && all(cellfun(@(x)iscell(x) && iscolumn(x),z_nuf(2:2:end))));
     end
     
-    ccc = onCleanup(@()cleanexit(obj,'get'));    
+    thisCallInputNames  = [fieldnames(z_thisCall); z_nuf(1:2:end).'];
+        
+    if ~isempty(obj.z_default)
+        z = obj.args(obj.z_default,z_thisCall);
+    else
+        z = obj.args(z_thisCall);
+    end
+    
+    ccc = onCleanup(@()cleanexit(obj,'get'));
     
     [atStep, names_stripped, names_raw] = prepareBranchAndNames(obj,name);
     
     minStep     = min(atStep);
     maxStep     = max(atStep);    
-    
-    % Check whether the provided inputs are indeed required by this process
-    t_inputs = fieldnames(z);
-    for oo=1:length(t_inputs)
-        if ~any(strcmp(t_inputs{oo},obj.allInputs))
-            z = rmfield(z,t_inputs{oo});
-            if obj.verbose
-                warning('This process is not sensitive to parameter %s.',t_inputs{oo});
-            end
-        end
-    end
-
-    
     
     % Check whether the requested outputs are indeed produced by this process
     for oo=1:length(names_stripped)
@@ -38,126 +30,72 @@ function [r,id_cum] = get(obj,name,varargin)
             error('This process does not produce requested output %s.',names_stripped{oo});
         end
     end
+    
+    % The get function can work in 2 modes.
+    
+    if isempty(z_nuf)
+        % The first mode is the original, optimized mode that assumes
+        % either no or single functionals, or multiple functionals that are
+        % uniformly 'gridded'. That is, if there are multiple functionals,
+        % then the full factorial combination of those functionals are
+        % calculated.
+        
+        [z_cum,z_step]  = prepareInputs(obj, name, z, thisCallInputNames, maxStep);
 
+        % After all the preparation, we are ready to actually get some results:
     
-    
-    % Determine until which step we have to proceed
-    untilStepNumber = maxStep;
-    pverbose(obj,'The requested result %s is an output of step %i (%s).\n',name,untilStepNumber,obj.steps(untilStepNumber).name);
-
-    % Check whether all the arguments are either numeric, cells or chars    
-    zflds   = fieldnames(z);
-    for oo=1:length(zflds)
-        if islogical(z.(zflds{oo})) % TODO: Raar, kan dit niet anders?
-            z.(zflds{oo}) = double(z.(zflds{oo}));
-        end
-    end
-    
-    
-    
-    
-    
-    
-    % Check if there are any decisions to be taken between just one option
-    
-    for ii=1:untilStepNumber
-        if ~obj.steps(ii).type
-            if ~iscell(z.(obj.steps(ii).decide))
-                z.(obj.steps(ii).decide) = {z.(obj.steps(ii).decide)};
-            end
-        end
-    end
-    
-    
-    
-    % Pre-construct the z objects that are necessary later, to
-    % prevent that you constantly have to build them again and
-    % again.
-    z_cum   = cell(untilStepNumber,1);
-    z_step  = cell(untilStepNumber,1);
-
-    for ii=1:untilStepNumber
-        if ii > 1
-            z_cum{ii}   = z_cum{ii-1};
+        if nargout <= 1
+            [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
+            [x,y,fn,fv]         = obj.getY(r,names_stripped,names_raw,f,{},{},1);
+            r                   = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
         end
         
-        if obj.deepverbose
-            fprintf('Processing %i required and %i optional inputs from step %i (%s).\n',length(obj.steps(ii).input),length(obj.steps(ii).optional),ii,obj.steps(ii).name);
+    else    
+        % The second mode is a 'newer' mode, that is not particularly
+        % optimized for speed, that allows for 'custom' functional 
+        % combinations. That is, the user provides vectors of input
+        % parameter values.
+        
+        if nargout > 1
+            error('This is not supported');
         end
-
-        for aa=1:length(obj.steps(ii).input)
-            try
-                z_cum{ii}.(obj.steps(ii).input{aa})     = z.(obj.steps(ii).input{aa});
-                z_step{ii}.(obj.steps(ii).input{aa})    = z.(obj.steps(ii).input{aa});
-            catch %#ok<CTCH>
-                error('The step %s requires parameter %s, but it is not set.',obj.createLink(obj.steps(ii).name),obj.steps(ii).input{aa});
+        
+        req_length  = length(z_nuf{2});
+        
+        for ii=1:2:length(z_nuf)
+            assert(isequal(size(z_nuf{ii+1}),[req_length 1]));
+        end
+        
+        for ss=req_length:-1:1
+            z_i     = z;
+            
+            pverbose(obj,'(%i / %i) Going to retrieve data for ',ss,req_length);
+            for ii=1:2:(length(z_nuf)-2)
+                z_i = obj.args(z_i,z_nuf{ii},z_nuf{ii+1}{ss});
+                pverbose(obj,'%s : %s, ',z_nuf{ii},num2str(z_nuf{ii+1}{ss}));
             end
             
-            if iscell(z.(obj.steps(ii).input{aa}))
-                if ~any(strcmp(obj.steps(ii).input{aa}, obj.defaultInputs)) || any(strcmp(obj.steps(ii).input{aa},thisCallInputNames))
-                    makeFunctionalCache(obj,obj.steps(ii).input{aa},z.(obj.steps(ii).input{aa}));
-                end
-            end
-        end
-
-        for aa=1:length(obj.steps(ii).optional)
-            try
-                z_cum{ii}.(obj.steps(ii).optional{aa})      = z.(obj.steps(ii).optional{aa});
-                z_step{ii}.(obj.steps(ii).optional{aa})     = z.(obj.steps(ii).optional{aa});
-            catch  %#ok<CTCH>
-                z_cum{ii}.(obj.steps(ii).optional{aa})      = [];
-                z_step{ii}.(obj.steps(ii).optional{aa})     = [];
+            z_i = obj.args(z_i,z_nuf{end-1},z_nuf{end}{ss});
+            pverbose(obj,'%s : %s.\n',z_nuf{end-1},num2str(z_nuf{end}{ss}));
+            
+%             pverbose(obj,'.\n');
+            
+            [z_cum,z_step,func] = prepareInputs(obj, name, z_i, thisCallInputNames, maxStep);
+            
+            if func
+                error('This is not possible');
             end
             
-            if ~iscell(z_cum{ii}.(obj.steps(ii).optional{aa}))
-                
-                if isnan(z_cum{ii}.(obj.steps(ii).optional{aa}))
-                    if obj.verbose
-                        fprintf('\tRemoving argument %s, because it was set to NaN.\n',obj.steps(ii).optional{aa});
-                    end
-                    z_cum{ii}   = rmfield(z_cum{ii},obj.steps(ii).optional{aa});
-                    z_step{ii}  = rmfield(z_step{ii},obj.steps(ii).optional{aa});
-                end
-                
-            else
-                
-                if ~iscolumn(z.(obj.steps(ii).optional{aa}))
-                    error('You should provide each functional as a cell column vector (%s).',obj.steps(ii).optional{aa});
-                end
-
-                if obj.verbose
-                    fprintf('\tI will make a fnc hash cache for %s with %i entries.\n',obj.steps(ii).optional{aa},length(z.(obj.steps(ii).optional{aa})));
-                end
-
-                fnchashtmp = -1*ones(length(z.(obj.steps(ii).optional{aa})),16);
-                fnccell     = z.(obj.steps(ii).optional{aa});
-                for uu=1:length(fnccell)
-                    fnchashtmp(uu,:) = CalcMD5(fnccell{uu},'char','Dec');
-                end
-                obj.fnchashcache.(obj.steps(ii).optional{aa})       = fnchashtmp;
-                
-                if isnumeric(z.(obj.steps(ii).optional{aa}){1})
-                    obj.fastfnchashcache.(obj.steps(ii).optional{aa})   = cell2mat(z.(obj.steps(ii).optional{aa}));
-                elseif ischar(z.(obj.steps(ii).optional{aa}){1})
-                    charhash     = zeros(length(z.(obj.steps(ii).optional{aa})),16);
-                    for uu=1:length(z.(obj.steps(ii).optional{aa}))
-                        charhash(uu,:)   = CalcMD5(z.(obj.steps(ii).optional{aa}){uu},'char','Dec');
-                    end
-                    obj.fastfnchashcache.(obj.steps(ii).optional{aa})   = charhash;
-                else
-                    error('boo!')
-                end
-            end
+            [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
+            [x,y,~,~]           = obj.getY(r,names_stripped,names_raw,f,{},{},1);
+            
+            y_all(ss,:)     = y;
         end
-    end
-
-    % After all the preparation, we are ready to actually get some results:
-    
-    if nargout <= 1
-        [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,untilStepNumber,untilStepNumber,struct(),struct(),[],minStep,false);
-
-        [x,y,fn,fv] = obj.getY(r,names_stripped,names_raw,f,{},{},1);
-        r           = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
+        
+        fn  = z_nuf(1:2:end);
+        fv  = z_nuf(2:2:end);
+        
+        r = PData3('x',x,'y',y_all,'fNames',fn,'fValues',fv,'myName',name,'fullFactorial',false);
     end
 
     t_totalGetTime  = toc(t_getStart);

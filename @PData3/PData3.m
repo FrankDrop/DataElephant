@@ -11,6 +11,7 @@ classdef PData3 < matlab.mixin.Copyable
         stdv
         isEmpty
         myName
+        fullFactorial
     end
     
     
@@ -76,6 +77,34 @@ classdef PData3 < matlab.mixin.Copyable
                 h(ii).UserData.gFaceColor           = z.gFaceColor;
                 hold(z.Axis,'on');
             end
+        end
+        
+        function [z,unm] = parse3DPlotInput(varargin)
+            p = inputParser;
+            p.CaseSensitive     = true;            
+            p.KeepUnmatched     = true;
+            
+            p.addParameter('plotProperties',{},@(x)iscell(x));
+            p.addParameter('hatchProperties',{},@(x)iscell(x));
+            
+            p.addParameter('level',[]);
+            p.addParameter('x0',[]);
+            p.addParameter('interpolate','no');
+            
+            p.addParameter('smooth',0);
+            
+            p.addParameter('xScale','linear');
+            p.addParameter('yScale','linear');
+            p.addParameter('zScale','linear');
+            
+            p.addParameter('x_i',[]);
+            p.addParameter('y_i',[]);
+            p.addParameter('iMethod','linear');
+            
+            p.addParameter('plotfnc',@plot);
+            p.parse(varargin{:});
+            z       = p.Results;
+            unm     = p.Unmatched;
         end
         
         function [z,unm] = parsePlotInput(varargin)
@@ -155,16 +184,16 @@ classdef PData3 < matlab.mixin.Copyable
             p.addParameter('fValues',[]);
             p.addParameter('fNames',[]);
             p.addParameter('myName',[]);
+            p.addParameter('fullFactorial',true);
             p.parse(varargin{:});
             z = p.Results;
             
-            % If the data is set as a single point, we have to encapsulate
-            % it in a cell. If it is part of a functional result, it should
-            % not.
             
             
             obj.x       = z.x;
             obj.y       = z.y;
+            
+            obj.fullFactorial   = z.fullFactorial;
             
             obj.fNames  = z.fNames;
             obj.myName  = z.myName;
@@ -199,10 +228,20 @@ classdef PData3 < matlab.mixin.Copyable
             else
                 obj.isEmpty = 0;
                 obj.setData(varargin{:});
-                obj.xAxis  = 'x';
+                obj.xAxis   = 'x';
+                obj.yAxis   = 'y';
                 if numel(obj.x) == 1 && length(obj.fNames) == 1
                     obj.xAxis = obj.fNames{1};
                 end
+            end
+        end
+        
+        function dat = getVectorData(obj)
+            if obj.fullFactorial
+                [X,Y]   = meshgrid(getXData(obj),getYData(obj));
+                dat     = {X(:),Y(:),reshape(obj.sy([obj.yAxis ',' obj.xAxis]),numel(obj.y),1)};
+            else
+                dat     = {getXData(obj),getYData(obj),obj.y};
             end
         end
         
@@ -221,6 +260,7 @@ classdef PData3 < matlab.mixin.Copyable
                     if ~any(strcmp(flds,'x'))
                         flds{end+1}     = 'x';
                     end
+                    
                     for oo=1:length(flds)
                         if any(strcmp(flds{oo},obj.fNames))
                             dimOrder    = [dimOrder find(strcmp(flds{oo},obj.fNames))]; %#ok<AGROW>
@@ -282,11 +322,6 @@ classdef PData3 < matlab.mixin.Copyable
             end
             obj.checkdimensions();
         end
-        
-        function setFncXData(~,~,~,~)
-            error('You use an outdated function! Use setUserData() instead.');
-        end
-
         
 %% Data manipulation
 
@@ -446,7 +481,88 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = pobj.copy;
             % Because the abs function is not really taken over a certain
             % dimension, you provide [] as last argument.
-            nobj    = nobj.genericmath('abs',@(x,d)abs(x),[],[],false);
+% %             nobj    = nobj.genericmath('abs',@(x,d)abs(x),[],[],false);
+            nobj.y  = abs(nobj.y);
+        end
+        
+        function nobj = sin(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('sin',@(x,d)sin(x),[],[],false);
+        end
+        
+        function nobj = cos(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('cos',@(x,d)cos(x),[],[],false);
+        end
+        
+        function nobj = asin(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('asin',@(x,d)asin(x),[],[],false);
+        end
+        
+        function nobj = acos(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('acos',@(x,d)acos(x),[],[],false);
+        end
+        
+        function nobj = sind(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('sind',@(x,d)sind(x),[],[],false);
+        end
+        
+        function nobj = cosd(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('cosd',@(x,d)cosd(x),[],[],false);
+        end
+        
+        function nobj = asind(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('asind',@(x,d)asind(x),[],[],false);
+        end
+        
+        function nobj = acosd(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('acosd',@(x,d)acosd(x),[],[],false);
+        end
+        
+        function nobj = tan(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('tan',@(x,d)tan(x),[],[],false);
+        end
+        
+        function nobj = tand(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('tand',@(x,d)tand(x),[],[],false);
+        end
+        
+        function nobj = atan(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('atan',@(x,d)atan(x),[],[],false);
+        end
+        
+        function nobj = atand(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('atand',@(x,d)atand(x),[],[],false);
+        end
+        
+        function nobj = sinh(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('sinh',@(x,d)sinh(x),[],[],false);
+        end
+        
+        function nobj = cosh(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('cosh',@(x,d)cosh(x),[],[],false);
+        end
+        
+        function nobj = asinh(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('asinh',@(x,d)asinh(x),[],[],false);
+        end
+        
+        function nobj = acosh(pobj)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('acosh',@(x,d)acosh(x),[],[],false);
         end
         
         function nobj = minval(pobj,val)
@@ -631,6 +747,16 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = pobj.copy;
             nobj    = nobj.genericmathover('min',@(x,d)min(x,[],d),[],over,true,varargin{:});
         end
+        
+        function nobj = min(pobj,val)
+            nobj    = pobj.copy;
+            nobj.y  = min(nobj.y,val);
+        end
+        
+        function nobj = max(pobj,val)
+            nobj    = pobj.copy;
+            nobj.y  = max(nobj.y,val);
+        end
 
         function nobj = nanminover(pobj,over,varargin)
             nobj    = pobj.copy;
@@ -659,12 +785,6 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = pobj.copy;
             nobj    = nobj.genericmathover('mean',@mean,@(x,d)std(x,1,d),over,true,varargin{:});
         end
-        
-        
-%         function nobj = diffover(pobj,over,varargin)
-%             nobj    = pobj.copy;
-%             nobj    = nobj.genericmathover('diff',@(x,d)diff(x,1,d),[],over,true,varargin{:});
-%         end
 
         function nobj = nanmeanover(obj,over,varargin)
             nobj = obj.genericmathover('mean',@nanmean,@(x,d)nanstd(x,1,d),over,true,varargin{:});
@@ -820,52 +940,58 @@ classdef PData3 < matlab.mixin.Copyable
 
 %% Plotting functions
 
-        function h = plotter(obj,fhandle,x,y,varargin)
+        function h = plotter(obj,fhandle,data,varargin)
             % Check whether the x and y data are of the same dimensions. If
             % not, it probably means the y data was averaged over x and the
             % new x data was not correctly set yet.
 
-            if ndims(x) ~= ndims(y)
-                error('The x and y data do not belong together.')
-            end
+%             x   = data{1};
+%             y   = data{2};
+%             if length(data) > 2
+%                 Z = data{3};
+%             end
+            
+%             if ndims(x) ~= ndims(y)
+%                 error('The x and y data do not belong together.')
+%             end
 
-            if all(iscell(x))
-                xlbl    = x;
-                x       = 1:length(x);
-            end
+%             if all(iscell(x))
+%                 xlbl    = x;
+%                 x       = 1:length(x);
+%             end
             
             [z,unm] = obj.parseGrayScalePlotInput(varargin{:});
             
             if isempty(z.LineSpec)
                 if ~isempty(fieldnames(unm))
                     if isfield(unm,'DisplayName')
-                        h = fhandle(z.Axis,x,y,unm);
+                        h = fhandle(z.Axis,data{:},unm);
                     elseif ~isempty(z.myName)
-                        h = fhandle(z.Axis,x,y,unm,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},unm,'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,x,y,unm);
+                        h = fhandle(z.Axis,data{:},unm);
                     end
                 else
                     if ~isempty(z.myName)
-                        h = fhandle(z.Axis,x,y,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,x,y);
+                        h = fhandle(z.Axis,data{:});
                     end
                 end
             else
                 if ~isempty(fieldnames(unm))
                     if isfield(unm,'DisplayName')
-                        h = fhandle(z.Axis,x,y,z.LineSpec,unm);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,unm);
                     elseif ~isempty(z.myName)
-                        h = fhandle(z.Axis,x,y,z.LineSpec,unm,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,unm,'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,x,y,z.LineSpec,unm);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,unm);
                     end
                 else
                     if ~isempty(z.myName)
-                        h = fhandle(z.Axis,x,y,z.LineSpec,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,x,y,z.LineSpec);
+                        h = fhandle(z.Axis,data{:},z.LineSpec);
                     end
                 end
             end
@@ -873,18 +999,18 @@ classdef PData3 < matlab.mixin.Copyable
             
             if z.setXLim
                 if strcmpi(z.Axis.XLimMode,'auto')
-                    myxlim = [min(x(:)) max(x(:))];
+                    myxlim = [min(data{1}(:)) max(data{1}(:))];
                     if all(diff(myxlim) == 0)
                         myxlim = [myxlim(1)-1 myxlim(1)+1];
                     end
                     xlim(z.Axis,myxlim);
                 elseif strcmpi(z.Axis.XLimMode,'manual')
-                    xlim(z.Axis,[min([x(:);z.Axis.XLim(1)]) max([x(:); z.Axis.XLim(2)])]);
+                    xlim(z.Axis,[min([data{1}(:);z.Axis.XLim(1)]) max([data{1}(:); z.Axis.XLim(2)])]);
                 end
             end
             
             if z.setYLim
-                yL      = [min(real(double(y(:)))) max(real(double(y(:))))];
+                yL      = [min(real(double(data{2}(:)))) max(real(double(data{2}(:))))];
                 if yL(1) == yL(2)
                     if isinf(yL(1))
                         yL = [-1 1];
@@ -912,11 +1038,7 @@ classdef PData3 < matlab.mixin.Copyable
             drawnow;            
             dc = datacursormode(gcf);
             set(dc,'UpdateFcn',@FCursor)
-            
-            if exist('xlbl','var')
-                set(z.Axis,'XTick',x);
-                set(z.Axis,'XTickLabel',xlbl)
-            end
+
         end
         
         function h = varline(obj,varargin)
@@ -1046,9 +1168,9 @@ classdef PData3 < matlab.mixin.Copyable
         
         function h = plot(obj,varargin)
             if ~isempty(obj.myName)
-                h = obj.plotter(@plot,getXData(obj),obj.y,varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
+                h = obj.plotter(@plot,{getXData(obj),obj.y},varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
             else
-                h = obj.plotter(@plot,getXData(obj),obj.y,varargin{:});
+                h = obj.plotter(@plot,{getXData(obj),obj.y},varargin{:});
             end
             
             if nargout == 0
@@ -1057,12 +1179,21 @@ classdef PData3 < matlab.mixin.Copyable
         end
 
         function h = scatter(obj,varargin)
-            h = obj.plotter(@scatter,getXData(obj),obj.y,varargin{:});
+            if obj.fullFactorial
+                h = obj.plotter(@scatter,{getXData(obj),obj.y},varargin{:});
+            else
+                h = obj.plotter(@scatter,{getXData(obj),getYData(obj),obj.y},varargin{:});
+            end
+            set(h,'Tag','Scatter');
+        end
+        
+        function h = scatter3(obj,varargin)
+            h = obj.plotter(@scatter3,getVectorData(obj),varargin{:});
             set(h,'Tag','Scatter');
         end
 
         function h = loglog(obj,varargin)
-            h = obj.plotter(@loglog,getXData(obj),obj.y,varargin{:});
+            h = obj.plotter(@loglog,{getXData(obj),obj.y},varargin{:});
             set(h,'Tag','Line');
             if nargout == 0
                 clear h
@@ -1071,9 +1202,9 @@ classdef PData3 < matlab.mixin.Copyable
 
         function h = semilogx(obj,varargin)
             if ~isempty(obj.myName)
-                h = obj.plotter(@semilogx,getXData(obj),obj.y,varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
+                h = obj.plotter(@semilogx,{getXData(obj),obj.y},varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
             else
-                h = obj.plotter(@semilogx,getXData(obj),obj.y,varargin{:});
+                h = obj.plotter(@semilogx,{getXData(obj),obj.y},varargin{:});
             end
             
             if nargout == 0
@@ -1082,7 +1213,7 @@ classdef PData3 < matlab.mixin.Copyable
         end
 
         function h = semilogy(obj,varargin)
-            h = obj.plotter(@semilogy,getXData(obj),obj.y,varargin{:});
+            h = obj.plotter(@semilogy,{getXData(obj),obj.y},varargin{:});
             set(h,'Tag','Line');
             if nargout == 0
                 clear h
@@ -1102,6 +1233,10 @@ classdef PData3 < matlab.mixin.Copyable
                 ha = strcmpi(obj.fNames,obj.xAxis);
                 if any(ha)
                     ha_d    = obj.fValues{ha};
+                    
+                    % test: this line should make the dimensions of x and y
+                    % congruent if a functional is used as x axis...?
+                    ha_d    = ha_d(:);
                 else
                     error('You did not provide a valid name to set as x axis!');
                 end
@@ -1223,15 +1358,19 @@ classdef PData3 < matlab.mixin.Copyable
                     bodex   = z.w;
                 end
             else
-                if iscolumn(obj.x)
+                
+                mx  = getXData(obj);                
+                H   = getYData(obj);
+                
+                if iscolumn(mx)
                     Hp      = H(:,z.which);
-                    bodex   = obj.x(:,z.which);
-                elseif isrow(obj.x)
+                    bodex   = mx(:,z.which);
+                elseif isrow(mx)
                     Hp      = H(z.which,:);
-                    bodex   = obj.x(z.which,:);
-                elseif ismatrix(obj.x)
+                    bodex   = mx(z.which,:);
+                elseif ismatrix(mx)
                     Hp      = H(:,z.which);
-                    bodex   = obj.x(:,z.which);
+                    bodex   = mx(:,z.which);
                 end
                 H_tauCor    = ones(size(bodex));
             end
@@ -1278,16 +1417,16 @@ classdef PData3 < matlab.mixin.Copyable
             
             if ~isempty(obj.myName)
                 if (z.phase)
-                    obj.plotter(@semilogx,bodex,Hp_angle,z.LineSpec,'Axis',z.phaseAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
+                    obj.plotter(@semilogx,{bodex,Hp_angle},z.LineSpec,'Axis',z.phaseAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
                 end
                 
                 if (z.magnitude)
-                    ph = obj.plotter(@loglog,bodex,Hp_abs,z.LineSpec,'Axis',z.magAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
+                    ph = obj.plotter(@loglog,{bodex,Hp_abs},z.LineSpec,'Axis',z.magAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
                 end
                 
                 if ~isempty(z.pos)
-                    obj.plotter(@loglog,bodex,Hp_abs+3*sdm,z.pos{:},'Axis',z.magAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
-                    obj.plotter(@semilogx,bodex,Hp_angle + sdp,z.pos{:},'Axis',z.phaseAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
+                    obj.plotter(@loglog,{bodex,Hp_abs+3*sdm},z.pos{:},'Axis',z.magAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
+                    obj.plotter(@semilogx,{bodex,Hp_angle + sdp},z.pos{:},'Axis',z.phaseAxis,'setYLim',false,'myName',obj.subscriptUnderscore(obj.myName),unm);
                 end
                 
                 if ~isempty(z.neg)
@@ -1364,63 +1503,6 @@ classdef PData3 < matlab.mixin.Copyable
                 h = obj.plotter(@plot,real(obj.y),imag(obj.y),varargin{:}); hold on
             end
         end
-
-        function h = hbode(PDataobj,varargin)
-            subplot(1,2,1)
-                h = plotmag(PDataobj,varargin{:});  hold on
-            subplot(1,2,2)
-                plotphase(PDataobj,varargin{:});  hold on
-        end
-
-        function h = fixbode(PDataobj,fllim,fulim,shift,varargin)
-
-            if iscell(PDataobj.y)
-                if isa(PDataobj.y{1},'idpoly')
-
-                    Y       = PDataobj.y{1};
-
-                    if size(Y,2) >= 1 && size(Y,1) == 1
-                        w   = logspace(-1,2,100)';
-
-                        for oo=1:size(Y,2)
-                            Hp = squeeze(freqresp(Y(1,oo),w));
-
-                            subplot(2,size(Y,2),oo)
-                                h = PDataobj.plotter(@loglog,w,abs(Hp),varargin{:}); hold on
-                                xlabel('$\omega$, rad/s');
-                                ylabel('Magnitude, -');
-                                set(h,'Tag','Line');
-                                xlim([w(1) w(end)])
-
-                            subplot(2,size(Y,2),oo+size(Y,2))
-                                if (180/pi)*unwrap(angle(Hp(1))) < fllim && (180/pi)*unwrap(angle(Hp(1))) > fulim
-                                    PDataobj.plotter(@semilogx,w,(180/pi)*unwrap(angle(Hp))+shift,varargin{:}); hold on
-    %                                     fprintf('Hai!\n')
-                                else
-                                    PDataobj.plotter(@semilogx,w,(180/pi)*unwrap(angle(Hp)),varargin{:}); hold on
-                                end
-                                xlabel('$\omega$, rad/s');
-                                ylabel('Phase, deg');
-                                set(gca,'YTick',-9000:90:9000)
-                                ylim([-360 180])
-                                xlim([w(1) w(end)])
-                                set(h,'Tag','Line');
-                                drawnow;
-                        end
-
-                    elseif size(PDataobj.y,1) > 1 && size(PDataobj.y,2) > 1
-                        error('MIMO models are not supported.');
-                    end
-                else
-                    error('Something went wrong?');
-                end
-            else
-                subplot(2,1,1)
-                    h = plotmag(PDataobj,varargin{:});  hold on
-                subplot(2,1,2)
-                    plotphase(PDataobj,varargin{:});  hold on
-            end
-        end
         
         function [nobj,idx] = peaks(obj,varargin)
             nobj        = obj.copy;
@@ -1457,7 +1539,7 @@ classdef PData3 < matlab.mixin.Copyable
             px          = px(idx);
             py          = py(idx);
             
-            h = obj.plotter(@loglog,px,py,z.LineSpec,unm,'setYLim',false);
+            h = obj.plotter(@loglog,{px,py},z.LineSpec,unm,'setYLim',false);
 
             xlabel('$\omega$, rad/s');
             ylabel('Magnitude, -');
@@ -1514,7 +1596,7 @@ classdef PData3 < matlab.mixin.Copyable
                 error('I can only plot a horizontal line at one y coordinate.')
             end
             
-            h=obj.plotter(@plot,hx,obj.y*ones(size(hx)),z.LineSpec,unm);
+            h=obj.plotter(@plot,{hx,obj.y*ones(size(hx))},z.LineSpec,unm);
             
             if nargout == 0
                 clear h
@@ -1582,80 +1664,78 @@ classdef PData3 < matlab.mixin.Copyable
             end
         end
 
-%         function h = mesh(obj,varargin)
-%             
-%             if strcmp(obj.xAxis,'x')
-%                 assert(ismatrix(obj.y));
-%                 h = mesh(obj.getXData(),obj.fValues{1},obj.y,varargin{:});
-%             else
-%                 assert(isscalar(obj.x));
-%                 assert(length(obj.fNames) == 2);
-%                 
-%                 if strcmp(obj.fNames{1},obj.xAxis)
-%                     h = mesh(obj.fValues{1},obj.fValues{2},squeeze(obj.y).',varargin{:});
-%                     xlabel(obj.fNames{1});
-%                     ylabel(obj.fNames{2});
-%                 else
-%                     h = mesh(obj.fValues{2},obj.fValues{1},squeeze(obj.y),varargin{:});
-%                     xlabel(obj.fNames{2});
-%                     ylabel(obj.fNames{1});
-%                 end
-%             end
-%         end
+        function [x_this,y_this,z_this] = prepare3Dplot(obj,z)
+            if obj.fullFactorial            
+                if length(obj.fValues) == 1
+                    if strcmp(obj.xAxis,obj.fNames{1})
+                        % We want to use one of the function values as
+                        % horizontal axis
+                        x_this  = obj.fValues{1};
+                        y_this  = obj.x;
+                        z_this  = squeeze(obj.y);
+                    elseif strcmp(obj.xAxis,'x')
+                        % The horizontal axis was not explicitly set to a
+                        % function value, so we'll just take the first one to
+                        % be the x data.
+                        x_this  = obj.x;
+                        y_this  = obj.fValues{1};
+                        z_this  = squeeze(obj.y).';
+                    else
+                        error('Something went wrong.');
+                    end
+                elseif length(obj.fValues) == 2
+                    % We assume that we want to use the two function axes for
+                    % the x and y axes, and use the x data to base the contour
+                    % on.
 
-        function [h1,h2] = contour(obj,varargin) %,level,x0,plotProperties,hatchProperties
-
-            p = inputParser;
-            p.CaseSensitive = true;
-            p.addParameter('level',[]);
-            p.addParameter('x0',[]);
-            p.addParameter('plotProperties',{},@(x)iscell(x));
-            p.addParameter('hatchProperties',{},@(x)iscell(x));
-            p.addParameter('interpolate','no');
-            p.addParameter('plotfnc',@plot);
-            p.parse(varargin{:});
-            z = p.Results;
+                    % Now figure out what function we want to use as horizontal
+                    % axis.                
+                    if strcmp(obj.xAxis,obj.fNames{1})
+                        % We want to use one of the function values as
+                        % horizontal axis
+                        x_this  = obj.fValues{1};
+                        y_this  = obj.fValues{2};
+                        z_this  = squeeze(obj.y).';
+                    elseif strcmp(obj.xAxis,obj.fNames{2})
+                        x_this  = obj.fValues{2};
+                        y_this  = obj.fValues{1};
+                        z_this  = squeeze(obj.y);
+                    else
+                        error('Something went wrong.');
+                    end
+                end
+                
+                [x_this,y_this]   = meshgrid(x_this,y_this);
+                
+            else
+                dat             = getVectorData(obj);
+                if ~(isempty(z.x_i) && isempty(z.y_i))
+                    [x_this,y_this] = meshgrid(unique(z.x_i),unique(z.y_i));
+                else
+                    [x_this,y_this] = meshgrid(unique(dat{1}),unique(dat{2}));
+                end
+                
+                z_this          = griddata(dat{:},x_this,y_this,z.iMethod);
+            end
             
-            if length(obj.fValues) == 1
-                if strcmp(obj.xAxis,obj.fNames{1})
-                    % We want to use one of the function values as
-                    % horizontal axis
-                    x_this  = obj.fValues{1};
-                    y_this  = obj.x;
-                    z_this  = squeeze(obj.y);
-                elseif strcmp(obj.xAxis,'x')
-                    % The horizontal axis was not explicitly set to a
-                    % function value, so we'll just take the first one to
-                    % be the x data.
-                    x_this  = obj.x;
-                    y_this  = obj.fValues{1};
-                    z_this  = squeeze(obj.y).';
-                else
-                    error('Something went wrong.');
-                end
-            elseif length(obj.fValues) == 2
-                % We assume that we want to use the two function axes for
-                % the x and y axes, and use the x data to base the contour
-                % on.
-
-                % Now figure out what function we want to use as horizontal
-                % axis.                
-                if strcmp(obj.xAxis,obj.fNames{1})
-                    % We want to use one of the function values as
-                    % horizontal axis
-                    x_this  = obj.fValues{1};
-                    y_this  = obj.fValues{2};
-                    z_this  = squeeze(obj.y).';
-                elseif strcmp(obj.xAxis,obj.fNames{2})
-                    x_this  = obj.fValues{2};
-                    y_this  = obj.fValues{1};
-                    z_this  = squeeze(obj.y);
-                else
-                    error('Something went wrong.');
-                end
+            if z.smooth > 0
+                kernel  = ones(z.smooth)/(z.smooth^2);
+                z_this  = conv2(z_this, kernel, 'same');                
+            end
+            
+        end
+        
+        function [h1,h2] = contour(obj,varargin) %,level,x0,plotProperties,hatchProperties
+            
+            [z,unm]                 = PData3.parse3DPlotInput(varargin{:});
+            [x_this,y_this,z_this]  = prepare3Dplot(obj,z);
+            
+            if ~obj.fullFactorial
+                x_this          = unique(x_this(:));
+                y_this          = unique(y_this(:));
             end
 
-            if size(z_this,2) == length(x_this) && size(z_this,1) == length(y_this)
+            if isequal(size(z_this),[length(x_this) length(y_this)])
                 if length(z.level) == 1 && all(z.level == 1)
                     lvl     = [z.level z.level];
                 else
@@ -1685,82 +1765,40 @@ classdef PData3 < matlab.mixin.Copyable
                     
                     if strcmp(z.interpolate,'yes')                    
                         y0      = interp1(xC,yC,xT);
-                        h1      = plotter(obj,z.plotfnc,xT,y0,z.plotProperties{:});
+                        h1      = plotter(obj,z.plotfnc,{xT,y0},z.plotProperties{:},unm);
                         set(h1,'Tag','Line');
                         if ~isempty(z.hatchProperties)
-                            h2      = plotter(obj,@hatchedline,xT,y0,z.hatchProperties{:}); hold on
+                            h2      = plotter(obj,@hatchedline,{xT,y0},z.hatchProperties{:},unm); hold on
                             set(h2,'Tag','Line');
                         end
                     else
-                        h1      = plotter(obj,z.plotfnc,xC,yC,z.plotProperties{:},'DisplayName',num2str(C(1,startIdx)));
+                        h1      = plotter(obj,z.plotfnc,{xC,yC},z.plotProperties{:},unm);
                         set(h1,'Tag','Line');
                         if ~isempty(z.hatchProperties)
-                            h2      = plotter(obj,@hatchedline,xC,yC,z.hatchProperties{:}); hold on                        
+                            h2      = plotter(obj,@hatchedline,{xC,yC},z.hatchProperties{:},unm); hold on                        
                             set(h2,'Tag','Line');
                         end
                     end
                     startIdx    = startIdx+thisLength+1;
                 end
+                
+                set(gca,'XScale',z.xScale);
+                set(gca,'YScale',z.yScale);
+                set(gca,'ZScale',z.zScale);
             else
                 error('Something wrong with the dimensions.');
             end
+            
+            h1  = h1(1);
         end
         
-        function [h1,h2] = mesh(obj,varargin) %,level,x0,plotProperties,hatchProperties
-
-            p = inputParser;
-            p.CaseSensitive = true;
-            p.addParameter('plotProperties',{},@(x)iscell(x));
-            p.addParameter('xScale','linear');
-            p.addParameter('yScale','linear');
-            p.addParameter('zScale','linear');
-            p.addParameter('plotfnc',@plot);
-            p.parse(varargin{:});
-            z = p.Results;
+        function C = mesh(obj,varargin)
             
-            if length(obj.fValues) == 1
-                if strcmp(obj.xAxis,obj.fNames{1})
-                    % We want to use one of the function values as
-                    % horizontal axis
-                    x_this  = obj.fValues{1};
-                    y_this  = obj.x;
-                    z_this  = squeeze(obj.y);
-                elseif strcmp(obj.xAxis,'x')
-                    % The horizontal axis was not explicitly set to a
-                    % function value, so we'll just take the first one to
-                    % be the x data.
-                    x_this  = obj.x;
-                    y_this  = obj.fValues{1};
-                    z_this  = squeeze(obj.y).';
-                else
-                    error('Something went wrong.');
-                end
-            elseif length(obj.fValues) == 2
-                % We assume that we want to use the two function axes for
-                % the x and y axes, and use the x data to base the contour
-                % on.
-
-                % Now figure out what function we want to use as horizontal
-                % axis.                
-                if strcmp(obj.xAxis,obj.fNames{1})
-                    % We want to use one of the function values as
-                    % horizontal axis
-                    x_this  = obj.fValues{1};
-                    y_this  = obj.fValues{2};
-                    z_this  = squeeze(obj.y).';
-                elseif strcmp(obj.xAxis,obj.fNames{2})
-                    x_this  = obj.fValues{2};
-                    y_this  = obj.fValues{1};
-                    z_this  = squeeze(obj.y);
-                else
-                    error('Something went wrong.');
-                end
-            end
-
-            if size(z_this,2) == length(x_this) && size(z_this,1) == length(y_this)
-                
-                [X,Y]   = meshgrid(x_this,y_this);
-                C       = mesh(X,Y,z_this);
+            [z,~]                   = obj.parse3DPlotInput(varargin{:});
+            [x_this,y_this,z_this]  = prepare3Dplot(obj,z);
+            
+            if isequal(size(x_this),size(y_this)) && isequal(size(x_this),size(z_this))                
+                C       = mesh(x_this,y_this,z_this);
                 
                 set(gca,'XScale',z.xScale);
                 set(gca,'YScale',z.yScale);
@@ -1769,72 +1807,22 @@ classdef PData3 < matlab.mixin.Copyable
                 error('Something wrong with the dimensions.');
             end
         end
-
-%         function h = semilogxmesh(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 h   = mesh(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'XScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-
-%         function h = semilogymesh(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 h   = mesh(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'YScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-
-%         function h = semilogzmesh(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 h   = mesh(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'ZScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-
-%         function h = semilogxymesh(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 h   = mesh(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'XScale', 'log', 'YScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-
-%         function h = logloglogmesh(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 h   = mesh(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'XScale', 'log', 'YScale', 'log', 'ZScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-
-%         function h = logloglogsurf(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,2) && size(PDataobj.y,3) == size(PDataobj.f2,3)
-%                 h   = surf(PDataobj.f1,PDataobj.f2,squeeze(PDataobj.y)',varargin{:});
-%                 set(gca, 'XScale', 'log', 'YScale', 'log', 'ZScale', 'log')
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
-% 
-%         function h = scatter3(PDataobj,varargin)
-%             if size(PDataobj.y,1) == 1 && size(PDataobj.y,2) == size(PDataobj.f1,1) && size(PDataobj.y,3) == size(PDataobj.f2,1)
-%                 pz      = squeeze(PDataobj.y);
-%                 pf1     = repmat(PDataobj.f1,size(PDataobj.y,3),1);
-%                 pf2     = repmat(PDataobj.f2,1,size(PDataobj.y,2))';
-% 
-%                 h = scatter3(pf1,pf2(:),pz(:),varargin{:});
-%             else
-%                 error('I am sorry, but I don''t think I can plot this data set...')
-%             end
-%         end
+        
+        function C = surf(obj,varargin)
+            
+            [z,~]                   = obj.parse3DPlotInput(varargin{:});
+            [x_this,y_this,z_this]  = prepare3Dplot(obj,z);
+            
+            if isequal(size(x_this),size(y_this)) && isequal(size(x_this),size(z_this))                
+                C       = surf(x_this,y_this,z_this);
+                
+                set(gca,'XScale',z.xScale);
+                set(gca,'YScale',z.yScale);
+                set(gca,'ZScale',z.zScale);
+            else
+                error('Something wrong with the dimensions.');
+            end
+        end
 
     %% Unit conversion functions
 
@@ -2379,13 +2367,19 @@ classdef PData3 < matlab.mixin.Copyable
     methods(Access=private)
         function obj = checkdimensions(obj)
 
-            neededSize  = [];
-            for oo=1:length(obj.fValues)
-                neededSize  = [neededSize length(obj.fValues{oo})]; %#ok<AGROW>
+            if obj.fullFactorial
+                neededSize  = [];
+                for oo=1:length(obj.fValues)
+                    neededSize  = [neededSize length(obj.fValues{oo})]; %#ok<AGROW>
+                end
+
+                neededSize  = [neededSize size(obj.x)];
+
+                
+            else
+                neededSize  = [length(obj.fValues{1}) size(obj.x)];
             end
-
-            neededSize  = [neededSize size(obj.x)];
-
+            
             stop = false;
             while ~stop
                 if neededSize(end) == 1 || neededSize(end) == 0
@@ -2408,29 +2402,31 @@ classdef PData3 < matlab.mixin.Copyable
             if isscalar(neededSize) && iscell(obj.y)
                 obj.y = obj.y{1};
             end
-            
+
             % Also do some checks on the fLabels and fNames
-            
+
             if length(obj.fNames) ~= length(obj.fLabels)
                 error('There should be as many labels as functional names.')
             end
-            
+
             if length(unique(obj.fNames)) < length(obj.fNames)
                 error('There are multiple functionals with the same name:\n%s',sprintf('- %s',obj.fNames));
             end
-            
-            for oo=1:length(obj.fLabels)
-                if iscell(obj.fLabels{oo})
-                    if length(unique(cell2mat(obj.fLabels{oo}),'rows')) < length(obj.fLabels{oo})
-                        tab         = tabulate(obj.fLabels{oo});
-                        duplicates  = tab([tab{:,2}] > 1,1);
-                        error('There are multiple labels within functional %s with the same value.',obj.fNames{oo},sprintf('- %s\n',duplicates{:}));
-                    end
-                else
-                    if length(unique(obj.fLabels{oo})) < length(obj.fLabels{oo})
-                        tab         = tabulate(obj.fLabels{oo});
-                        duplicates  = tab([tab{:,2}] > 1,1);
-                        error('There are multiple labels within functional %s with the same name:\n%s',obj.fNames{oo},sprintf('- %s\n',duplicates{:}));
+
+            if obj.fullFactorial
+                for oo=1:length(obj.fLabels)
+                    if iscell(obj.fLabels{oo})
+                        if length(unique(cell2mat(obj.fLabels{oo}),'rows')) < length(obj.fLabels{oo})
+                            %tab         = tabulate(obj.fLabels{oo});
+                            %duplicates  = tab([tab{:,2}] > 1,1);
+                            error('There are multiple labels within functional %s with the same value.',obj.fNames{oo}); %,sprintf('- %s\n',duplicates{:}));
+                        end
+                    else
+                        if length(unique(obj.fLabels{oo})) < length(obj.fLabels{oo})
+        %                         tab         = tabulate(obj.fLabels{oo});
+        %                         duplicates  = tab([tab{:,2}] > 1,1);
+                            error('There are multiple labels within functional %s with the same name.',obj.fNames{oo}); %,sprintf('- %s\n',duplicates{:}));
+                        end
                     end
                 end
             end

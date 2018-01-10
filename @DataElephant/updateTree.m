@@ -52,7 +52,8 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
                 for oo=1:length(obj.process.branches)
                     assert(length(obj.process.branches{oo}) > 1,'A branch cannot consist of just one step.');
                     assert(any(strcmp(func2str(obj.process.branches{oo}{1}),cellfun(@(x)func2str(x),obj.process.steps,'UniformOutput',false))),...
-                        sprintf('The branch starting with step %s is invalid, because this step is not part of the main branch.',obj.createLink(func2str(obj.process.branches{oo}{1}))));
+                        sprintf('The branch starting with step %s in process %s is invalid, because this step is not part of the main branch.',...
+                          obj.createLink(func2str(obj.process.branches{oo}{1}))),obj.createLink(func2str(obj.fHandle)));
                     
                     % Start at the second one, because the first step is
                     % both in the main thread as in the branches, hence it
@@ -86,7 +87,7 @@ function [branchNumber,stepNumber] = updateTree(obj,varargin)
     obj.steps               = [];
     for oo=1:length(obj.process.steps)
         
-        if exist(func2str(obj.process.steps{oo})) ~= 2
+        if exist(func2str(obj.process.steps{oo})) ~= 2 %#ok<EXIST>
             error('The process %s refers to step %s, but this step is not on your path.',...
                 obj.createLink(func2str(obj.fHandle)),obj.createLink(func2str(obj.process.steps{oo})))
         end

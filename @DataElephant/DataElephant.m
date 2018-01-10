@@ -113,7 +113,7 @@ classdef DataElephant < handle
         fldr                    = tidyfoldername(fldr);
         mssg                    = addPort(mssg,port);
         s                       = createLink(n);
-        z                       = args(varargin);
+        [z,z_nuf]               = args(varargin);
         
         [answer,id,filename]    = readMessage(mssg);
         [r_i,f_i]               = getIndividual(r_i,f_i,fields,fnc,idx,n_choices);

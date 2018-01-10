@@ -1,4 +1,4 @@
-function z = args(varargin)
+function [z,z_nuf] = args(varargin)
 
     z   = struct();
     rem = [];
@@ -18,6 +18,17 @@ function z = args(varargin)
         missing(ia) = 0;
         f = varargin(2*find(missing)-1);
         error('You provided inputs %s more than once.',sprintf('%s, ',f{:}));
+    end
+    
+    idx     = cellfun(@(x)ischar(x) && strcmp(x,'*'),varargin,'UniformOutput',false);
+    idx     = [idx{:}];
+    
+    if any(idx)
+        z_nuf   = varargin{find(idx)+1};
+        
+        varargin(find(idx):(find(idx)+1))   = [];
+    else
+        z_nuf   = [];
     end
     
     for oo=1:2:length(varargin)
