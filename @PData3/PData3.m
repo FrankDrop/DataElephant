@@ -14,6 +14,11 @@ classdef PData3 < matlab.mixin.Copyable
         fullFactorial
     end
     
+    methods(Static, Access = public)
+        
+        [x0,y0,iout,jout] = intersections(x1,y1,x2,y2,robust);
+        
+    end
     
     methods (Static)
         
@@ -2137,8 +2142,17 @@ classdef PData3 < matlab.mixin.Copyable
         end
         
         
+        
         function l = lengthY(obj)
             l = length(obj.y);
+        end
+        
+        function [X0,Y0] = intersect(a,b)
+            if isa(a,'PData3') && isa(b,'PData3')
+                [X0,Y0] = PData3.intersections(a.getXData(),a.y,b.getXData(),b.y);
+            else
+                error('I can only work on two PData3 objects')
+            end
         end
 
         function nobj = mathfunc(h,a,b,varargin)
