@@ -5,7 +5,7 @@ function obj = makeFunctionalCache(obj,inputName,inputContent)
     end
     
     if ~iscolumn(inputContent)
-        error('You should provide each functional as a cell column vector (%s).',inputName);
+        warning('If you meant to use functions, you should provide each functional as a column vector (%s).',inputName);
     end
 
     fnchashtmp  = -1*ones(length(inputContent),16,'uint8');

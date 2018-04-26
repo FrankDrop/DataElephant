@@ -227,6 +227,7 @@ classdef PData3 < matlab.mixin.Copyable
     end
     
     methods
+        
         function obj = PData3(varargin)
             if nargin == 0
                 obj.isEmpty = 1;
@@ -945,6 +946,10 @@ classdef PData3 < matlab.mixin.Copyable
 
 %% Plotting functions
 
+        function h = custom(obj,func,varargin)
+            h = func(obj,varargin{:});
+        end
+
         function h = plotter(obj,fhandle,data,varargin)
             % Check whether the x and y data are of the same dimensions. If
             % not, it probably means the y data was averaged over x and the
@@ -1076,9 +1081,9 @@ classdef PData3 < matlab.mixin.Copyable
                 tx = getXData(obj);
                 ty = obj.y;
                 te = obj.stdv;
-                z2.atIndex = z2.atIndex(z2.atIndex < length(tx) & z2.atIndex > 0);
+                z2.atIndex = z2.atIndex(z2.atIndex <= length(tx) & z2.atIndex > 0);
                 
-                tx = tx(z2.atIndex);
+%                 tx = tx(z2.atIndex);
                 ty = ty(z2.atIndex);
                 te = te(z2.atIndex);
             else
@@ -2154,6 +2159,18 @@ classdef PData3 < matlab.mixin.Copyable
                 error('I can only work on two PData3 objects')
             end
         end
+        
+        function [rho,pval] = nanpearson(a,b)
+            dat = [a.y b.y];
+            dat = dat(~any(isnan(dat),2),:);
+            [rho,pval] = corr(dat(:,1),dat(:,2),'Type','Pearson');
+        end
+        
+        function [rho,pval] = pearson(a,b)
+            dat = [a.y b.y];
+            dat = dat(~any(isnan(dat),2),:);
+            [rho,pval] = corr(dat(:,1),dat(:,2),'Type','Pearson');
+        end
 
         function nobj = mathfunc(h,a,b,varargin)
             
@@ -2459,7 +2476,7 @@ classdef PData3 < matlab.mixin.Copyable
 
             if isa(varFnc,'function_handle')
                 nobj.stdv       = varFnc(nobj.y,dim);            
-                sz              = size(nobj.stdv);
+                sz              = size(nobj.y);
                 sz(dim)         = [];
                 if length(sz) == 1
                     sz  = [sz 1];
