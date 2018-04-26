@@ -108,8 +108,8 @@ classdef DataElephant < handle
     
     methods(Static, Access = private)
         
-        A           = catstruct(varargin);
-        anyTemplate(template,name);
+        A                       = catstruct(varargin);
+                                  anyTemplate(template,name);
         fldr                    = tidyfoldername(fldr);
         mssg                    = addPort(mssg,port);
         s                       = createLink(n);
