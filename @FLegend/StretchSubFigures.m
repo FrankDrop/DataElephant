@@ -1,22 +1,15 @@
 function z = StretchSubFigures(z)
-    z.SubPlotWidth
-    z.SubPlotHeight
-
     for yy=1:z.NumSubPlotRows
         for xx=1:z.NumSubPlotColumns
             pos = zeros(1,4);
             
-            pp  = (yy-1)*z.NumSubPlotColumns + xx;
+            pp  = (yy-1)*z.NumSubPlotColumns + (z.NumSubPlotColumns - (xx -1));
             
-            [yy xx]
-            
-%             if isempty(get(get(figaxes(uu),'Title'),'String'))
-%                 t_titleheight = 0;
-%             else
-%                 t_titleheight = z.titleheight;
-%             end
-            
-            t_titleheight = 0;
+            if isempty(z.SubPlots(pp).Title.String)
+                t_titleheight = 0;
+            else
+                t_titleheight = z.TitleHeight(yy);
+            end
 
             if z.Paper
                 z.SubPlots(pp).Units                         = 'centimeter';
@@ -33,19 +26,14 @@ function z = StretchSubFigures(z)
             z.SubPlots(pp).XLabel.Position = convertPositions(z,[(z.SubPlotWidth(xx)-(z.YLabelWidth(xx)+z.RightYLabelWidth(xx)))/2 -z.XLabelHeight(yy) 0]); % + z.RightMargin
             z.SubPlots(pp).YLabel.Position = convertPositions(z,[-z.YLabelWidth(xx) (z.SubPlotHeight(yy)-z.XLabelHeight(yy))/2 0]);
 
-            pos(1)  = sum(z.SubPlotWidth(1:(xx-1)))     + sum(z.SubPlotHorizontalSpacing(1:(xx-1)))     + z.YLabelWidth(xx);
-            pos(2)  = sum(z.SubPlotHeight(1:(yy-1)))    + sum(z.SubPlotVerticalSpacing(1:(yy-1)))       + z.XLabelHeight(yy);
+            pos(1)  = z.PaddingLeft + sum(z.SubPlotWidth(1:(xx-1)))     + sum(z.SubPlotHorizontalSpacing(1:(xx-1)))     + z.YLabelWidth(xx);
+            pos(2)  = z.PaddingBottom + sum(z.SubPlotHeight(1:(yy-1)))    + sum(z.SubPlotVerticalSpacing(1:(yy-1)))       + z.XLabelHeight(yy);
             
             pos(3)  = z.SubPlotWidth(xx) - (z.YLabelWidth(xx)  + z.RightYLabelWidth(xx)); %+ z.RightMargin(xx)
             pos(4)  = z.SubPlotHeight(yy) - (z.XLabelHeight(yy)  + t_titleheight); %+ z.TopMargin(yy)
             
             
             z.SubPlots(pp).Position = convertPositions(z,pos);
-            
-            
-%             z.SubPlots((yy-1)*z.NumSubPlotColumns + xx).Position
-%             z.SubPlots((yy-1)*z.NumSubPlotColumns + xx).Position = [3 3 7.5 7.5];
-%             set(figaxes(uu),'Position',pos);
 
 %             if ~isempty(z.rightYlimits)
 %                 if ~isempty(z.rightYlimits{uu})

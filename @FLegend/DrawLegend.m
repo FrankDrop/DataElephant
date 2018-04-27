@@ -1,14 +1,31 @@
-function DrawLegend(z)
+function z = DrawLegend(z)
 
-    set(z.AxesHandle,'units','centimeters');
-    ax_pos = get(z.AxesHandle,'position');
+    % Calculate legend size
 
+    z.LegendWidth  = z.LegendPaddingLeft + ...
+                     sum(z.MarkerWidth) + ...
+                     sum(z.LegendItemHorizontalSpacing) + ...
+                     sum(z.LegendMarkerTextSpacing) + ...
+                     sum(z.TextWidth) + ...
+                     z.LegendPaddingRight;
 
+    z.LegendHeight  = z.LegendPaddingTop + ...
+                      sum(z.TextHeight) + ...
+                      sum(z.LegendItemVerticalSpacing) + ...
+                      z.LegendPaddingBottom;
+
+                  
+    if z.Paper
+        set(z.AxesHandle,'units','centimeters');
+    end
+        
+    ax_pos  = get(z.AxesHandle,'position');
 
     legendAxes = axes;
     legendAxes.UserData.FLegend = true;
-    if ~isempty(z.color)
-        legendAxes.Color = z.color;
+    
+    if ~isempty(z.Color)
+        legendAxes.Color = z.Color;
     end
 
     if strcmp(z.Box,'yes')
@@ -17,41 +34,51 @@ function DrawLegend(z)
 
     hold on
 
-
-
-    if ~isempty(z.title)
-        ploty   = lh - (z.Spacing + z.TextHeight(1)/2);
-        text(z.Spacing,ploty-0.05+z.textverticalshift,z.title,'VerticalAlignment','middle',...
+    if ~isempty(z.Title)
+        ploty   = z.LegendHeight - z.TextHeight(1)/2;
+        text(z.LegendItemSpacing,ploty-0.05+z.TextVerticalShift,z.Title,'VerticalAlignment','middle',...
                                                   'FontName','CMR6',...
                                                   'FontSize',z.FontSize,...
                                                   'Interpreter',z.Interpreter);
     end
 
     % Plotting the legend
-    for oo=1:numLabels
-        if ~isempty(z.title)    
-            if strcmp(z.Orientation,'vertical')
+    for oo=1:z.NumLabels
+        
+        if ~isempty(z.Title)    
+            if strcmp(z.Orientation,'Vertical')
                 col = ceil(oo / (z.Rows-1));
                 row = mod(oo-1, (z.Rows-1))+1+1;
-            elseif strcmp(z.Orientation,'horizontal')            
-                col = mod(oo-1, z.columns)+1;            
-                row = ceil(oo / z.columns)+1;
+            elseif strcmp(z.Orientation,'Horizontal')            
+                col = mod(oo-1, z.Columns)+1;            
+                row = ceil(oo / z.Columns)+1;
             end
         else
-            if strcmp(z.Orientation,'vertical')
+            if strcmp(z.Orientation,'Vertical')
                 col = ceil(oo / (z.Rows));
                 row = mod(oo-1, (z.Rows))+1;
-            elseif strcmp(z.Orientation,'horizontal')            
-                col = mod(oo-1, z.columns)+1;            
-                row = ceil(oo / z.columns);
+            elseif strcmp(z.Orientation,'Horizontal')            
+                col = mod(oo-1, z.Columns)+1;            
+                row = ceil(oo / z.Columns);
             end
         end
 
-        plotx1  = z.Spacing + 2*z.Spacing * (col -1) + sum(z.TextWidth(1:(col-1))) + sum(z.MarkerWidth(1:(col-1)));
-        plotx2  = plotx1 + z.MarkerWidth(col);        
-        plotxt  = plotx2 + z.Spacing;
+        plotx1  = z.LegendPaddingLeft + ...
+                    sum(z.LegendMarkerTextSpacing(1:(col-1))) + ...
+                    sum(z.LegendItemHorizontalSpacing(1:(col -1))) + ...
+                    sum(z.TextWidth(1:(col-1))) + ...
+                    sum(z.MarkerWidth(1:(col-1)));
+                
+        plotx2  = plotx1 + z.MarkerWidth(col);
+        plotxt  = plotx2 + z.LegendMarkerTextSpacing(col);
 
-        ploty   = lh - (z.Spacing + sum(z.vSpacing(1:(row-1))) + sum(z.TextHeight(1:(row-1))) + z.TextHeight(row)/2);
+        ploty   = z.LegendHeight - ( ...
+                        z.LegendPaddingTop + ...
+                        sum(z.LegendItemVerticalSpacing(1:(row-1))) + ...
+                        sum(z.TextHeight(1:(row-1))) + ...
+                        z.TextHeight(row)/2 ...
+                    );
+                    
         props   = get(z.PlotHandle(oo));
 
     %% Determine what kind of marker we need to draw
@@ -67,7 +94,6 @@ function DrawLegend(z)
         elseif isa(z.PlotHandle(oo),'matlab.graphics.primitive.Rectangle')
             iWillDraw   = 'Rectangle';
         else
-            z.PlotHandle(oo)
             error('You need to add the %s class.',class(z.PlotHandle(oo)))
         end
 
@@ -84,7 +110,7 @@ function DrawLegend(z)
 
             if ~strcmp(props.Marker,'none')
                 plot(mean([plotx1 plotx2]),ploty,...
-                    'Color',get(z.PlotHandle(oo),'Color'),...
+                    'Color',z.PlotHandle(oo).Color,...
                     'LineStyle',get(z.PlotHandle(oo),'LineStyle'),...
                     'Marker',get(z.PlotHandle(oo),'Marker'),...
                     'MarkerSize',get(z.PlotHandle(oo),'MarkerSize'),...
@@ -169,11 +195,11 @@ function DrawLegend(z)
             end
         end
 
-        text(plotxt,ploty-0.05+z.textverticalshift,thisLabel,'VerticalAlignment','middle',...
-                                                  'FontName','CMR6',...
-                                                  'FontSize',12,...
-                                                  'Color',z.TextColor,...
-                                                  'Interpreter',z.Interpreter);
+        text(plotxt,ploty+z.TextVerticalShift,thisLabel, 'VerticalAlignment','middle',...
+                                                              'FontName',z.FontName,...
+                                                              'FontSize',12,...
+                                                              'Color',z.TextColor,...
+                                                              'Interpreter',z.Interpreter);
 
     end
 
@@ -182,31 +208,31 @@ function DrawLegend(z)
 
     switch lower(z.Location)
         case {'north'}
-            autoLegendX = ax_pos(1) + (ax_pos(3) / 2 - lw/2);
-            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + lh));
+            autoLegendX = ax_pos(1) + (ax_pos(3) / 2 - z.LegendWidth/2);
+            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + z.LegendHeight));
 
         case {'northoutside','north outside'}
-            autoLegendX = ax_pos(1) + (ax_pos(3)-lw)/2 - max([lw-ax_pos(3) 0])/2;
-            autoLegendY = ax_pos(2) + ax_pos(4) + 2*z.Spacing;
+            autoLegendX = ax_pos(1) + (ax_pos(3)-z.LegendWidth)/2 - max([z.LegendWidth-ax_pos(3) 0])/2;
+            autoLegendY = ax_pos(2) + ax_pos(4) + 2*z.LegendItemSpacing;
 
         case {'northeast','north east'}
-            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + lw));
-            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + lh));
+            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + z.LegendWidth));
+            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + z.LegendHeight));
 
         case {'east'}
-            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + lw));
-            autoLegendY = ax_pos(2) + (ax_pos(4) / 2 - lh/2);
+            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + z.LegendWidth));
+            autoLegendY = ax_pos(2) + (ax_pos(4) / 2 - z.LegendHeight/2);
 
         case {'eastoutside','east outside'}
-            autoLegendX = ax_pos(1) + ax_pos(3) + 2*z.Spacing;
-            autoLegendY = ax_pos(2) + (ax_pos(4)-lh)/2 - max([lh-ax_pos(4) 0])/2;
+            autoLegendX = ax_pos(1) + ax_pos(3) + 2*z.LegendItemSpacing;
+            autoLegendY = ax_pos(2) + (ax_pos(4)-z.LegendHeight)/2 - max([z.LegendHeight-ax_pos(4) 0])/2;
 
         case {'southeast','south east'}
-            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + lw));
+            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + z.LegendWidth));
             autoLegendY = ax_pos(2) + ySpacing;
 
         case {'south'}
-            autoLegendX = ax_pos(1) + (ax_pos(3) / 2 - lw/2);
+            autoLegendX = ax_pos(1) + (ax_pos(3) / 2 - z.LegendWidth/2);
             autoLegendY = ax_pos(2) + ySpacing;
 
         case {'southwest','south west'}
@@ -215,33 +241,36 @@ function DrawLegend(z)
 
         case {'west'}
             autoLegendX = ax_pos(1) + xSpacing;
-            autoLegendY = ax_pos(2) + (ax_pos(4) / 2 - lh/2);
+            autoLegendY = ax_pos(2) + (ax_pos(4) / 2 - z.LegendHeight/2);
 
         case {'northwest','north west'}
             autoLegendX = ax_pos(1) + xSpacing;
-            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + lh));
+            autoLegendY = ax_pos(2) + (ax_pos(4) - (ySpacing + z.LegendHeight));
 
         otherwise
             fprintf('The option ''%s'' does not exist!\n',Location)
-            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + lw));
+            autoLegendX = ax_pos(1) + (ax_pos(3) - (xSpacing + z.LegendWidth));
             autoLegendY = ax_pos(2) + ySpacing;
     end    
 
-    if z.legendx == 0
-        z.legendx = autoLegendX;
+    if isempty(z.LegendHorizontalPosition)
+        z.LegendHorizontalPosition = autoLegendX;
     end
 
-    if z.legendy == 0
-        z.legendy = autoLegendY;
+    if isempty(z.LegendVerticalPosition)
+        z.LegendVerticalPosition = autoLegendY;
     end
+    
+    z.LegendHorizontalPosition  = z.LegendHorizontalPosition + z.LegendHorizontalShift;
+    z.LegendVerticalPosition    = z.LegendVerticalPosition + z.LegendVerticalShift;
 
     set(gca,'units','centimeters');
-    set(gca,'position',[z.legendx+z.legend_dx  z.legendy+z.legend_dy lw lh]);
+    set(gca,'position',[z.LegendHorizontalPosition  z.LegendVerticalPosition z.LegendWidth z.LegendHeight]);
     set(gca,'Box','on');
     set(gca,'XTick',[]);
     set(gca,'YTick',[]);
-    set(gca,'XLim',[0 lw]);
-    set(gca,'YLim',[0 lh]);
+    set(gca,'XLim',[0 z.LegendWidth]);
+    set(gca,'YLim',[0 z.LegendHeight]);
 
-    set(gcf,'CurrentAxes',currentAxes)
+    set(gcf,'CurrentAxes',z.CurrentAxes)
 end

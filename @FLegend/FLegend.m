@@ -45,6 +45,8 @@ classdef FLegend
             z               = FLegend.GetSubPlotProperties(z);
             z               = FLegend.StretchSubFigures(z);
             drawnow;
+            z               = FLegend.DrawLegend(z);
+            drawnow;
         end
     end
 end

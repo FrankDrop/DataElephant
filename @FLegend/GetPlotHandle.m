@@ -1,5 +1,5 @@
 function z = GetPlotHandle(z)
-    if isnumeric(z.PlotHandle) && ~isempty(z.PlotHandle)
+    if isempty(z.PlotHandle)
         z.PlotHandle    = z.AxesHandle.Children;
 
         kk  = 1;
