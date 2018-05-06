@@ -38,10 +38,10 @@ F. You need to tell DataElephant about these two folders. There are two options:
 2. Set the correct option when creating a DataElephant object.
 
     a. On Windows, create a DataElephant object with the options 'win_root' and 'win_temp' set to the paths of your storage and temporary storage folders.
-        For example: a = DataElephat(@example,'win_root','D:/StorageElephants','win_temp','D:/TemporaryElephants');
+        For example: a = DataElephant(@example,'win_root','D:/StorageElephants','win_temp','D:/TemporaryElephants');
 
     b. On Linux, create a DataElephant object with the options 'unix_root' and 'unix_temp' set to the paths of your storage and temporary storage folders.
-        For example: a = DataElephat(@example,'unix_root','D:/StorageElephants','unix_temp','D:/TemporaryElephants');
+        For example: a = DataElephant(@example,'unix_root','D:/StorageElephants','unix_temp','D:/TemporaryElephants');
 
 Note that options set while creating a new DataElephant object always override options set in the config file.
 
