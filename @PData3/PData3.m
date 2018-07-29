@@ -1465,13 +1465,19 @@ classdef PData3 < matlab.mixin.Copyable
             if z.magnitude
                 xlabel(z.magAxis,'$\omega$, rad/s','interpreter','latex');
                 ylabel(z.magAxis,'Magnitude, -');
+                set(z.magAxis,'YTick',[1e-10 1e-9 1e-8 1e-7 1e-6 1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2 1e3 1e4 1e5 1e6 1e7 1e8 1e9]);
+                set(z.magAxis,'XTick',[1e-10 1e-9 1e-8 1e-7 1e-6 1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2 1e3 1e4 1e5 1e6 1e7 1e8 1e9]);
+                ylim(z.magAxis,[1e-3 1e3])
+                grid(z.magAxis,'on');
             end
             
             if z.phase
                 xlabel(z.phaseAxis,'$\omega$, rad/s','interpreter','latex');
                 ylabel(z.phaseAxis,'Phase, deg');
                 set(z.phaseAxis,'YTick',-9000:90:9000)
+                set(z.phaseAxis,'XTick',[1e-10 1e-9 1e-8 1e-7 1e-6 1e-5 1e-4 1e-3 1e-2 1e-1 1e0 1e1 1e2 1e3 1e4 1e5 1e6 1e7 1e8 1e9]);
                 ylim(z.phaseAxis,[-360 180])
+                grid(z.phaseAxis,'on');
             end
             
             if nargout == 1
@@ -2200,7 +2206,7 @@ classdef PData3 < matlab.mixin.Copyable
                 if isequal(size(a.(actOn)),size(b.(actOn))) || (ismatrix(a.(actOn)) && ismatrix(b.(actOn)) && isequal(fliplr(size(a.(actOn))), size(b.(actOn))))
                     nobj    = a.copy;
                     if strcmp(actOn,'y')
-                        if ~isequal(a.x(:),b.x(:))
+                        if isnumeric(a.x) && isnumeric(b.x) && ~isequal(a.x(:),b.x(:))
                             warning('It seems you are %s-ing two objects with different x values!',func2str(h))
                         end
                         

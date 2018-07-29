@@ -104,6 +104,7 @@ classdef DataElephant < handle
         processTemplate();
         configTemplate();
         varargout   = splitOutput(out);
+        checkMex();
     end
     
     methods(Static, Access = private)
@@ -118,6 +119,8 @@ classdef DataElephant < handle
         [answer,id,filename]    = readMessage(mssg);
         [r_i,f_i]               = getIndividual(r_i,f_i,fields,fnc,idx,n_choices);
         r                       = addIndividual(r,r_i,uu);
+        
+        
         
     end
     
@@ -147,6 +150,8 @@ classdef DataElephant < handle
                 setProcessHandle(obj,fH);
                 init(obj,varargin{:});
             end
+            
+            DataElephant.checkMex();
             updateTree(obj);
         end
         function delete(obj)
