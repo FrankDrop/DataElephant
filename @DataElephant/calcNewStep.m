@@ -25,7 +25,7 @@ function r_n = calcNewStep(obj,z_cum,z_step,r,hash,stepnr,lastStepInSequence,che
     end
     
     
-    if obj.steps(stepnr).memorizeme == 0
+    if obj.steps(stepnr).memorizeme == 0 && obj.verbose
         fprintf('Not saving the data of step %i.\n',stepnr);
         return;
     end

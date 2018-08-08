@@ -480,6 +480,12 @@ classdef PData3 < matlab.mixin.Copyable
             
             nobj.checkdimensions();
         end
+        
+        function nobj = normalize(pobj)
+            nobj = pobj.copy;
+            
+            nobj.y  = 2*(nobj.y - min(nobj.y)) / (max(nobj.y) - min(nobj.y))-1;
+        end
 
 %% Math functions over a certain dimension specified by number
 
@@ -1047,7 +1053,7 @@ classdef PData3 < matlab.mixin.Copyable
             
             drawnow;            
             dc = datacursormode(gcf);
-            set(dc,'UpdateFcn',@FCursor)
+%             set(dc,'UpdateFcn',@FCursor)
 
         end
         
