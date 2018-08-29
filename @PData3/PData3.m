@@ -12,6 +12,7 @@ classdef PData3 < matlab.mixin.Copyable
         isEmpty
         myName
         fullFactorial
+        raw
     end
     
     methods(Static, Access = public)
@@ -190,15 +191,15 @@ classdef PData3 < matlab.mixin.Copyable
             p.addParameter('fNames',[]);
             p.addParameter('myName',[]);
             p.addParameter('fullFactorial',true);
+            p.addParameter('raw',false);
             p.parse(varargin{:});
             z = p.Results;
-            
-            
             
             obj.x       = z.x;
             obj.y       = z.y;
             
             obj.fullFactorial   = z.fullFactorial;
+            obj.raw             = z.raw;
             
             obj.fNames  = z.fNames;
             obj.myName  = z.myName;
@@ -2397,6 +2398,10 @@ classdef PData3 < matlab.mixin.Copyable
     end
     methods(Access=private)
         function obj = checkdimensions(obj)
+
+            if obj.raw
+                return;
+            end
 
             if obj.fullFactorial
                 neededSize  = [];

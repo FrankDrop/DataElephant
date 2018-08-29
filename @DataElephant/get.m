@@ -47,7 +47,7 @@ function [r,id_cum] = get(obj,name,varargin)
         if nargout <= 1
             [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
             [x,y,fn,fv]         = obj.getY(r,names_stripped,names_raw,f,{},{},1);
-            r                   = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name);
+            r                   = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name,'raw',obj.raw);
         end
         
     else    
@@ -95,7 +95,7 @@ function [r,id_cum] = get(obj,name,varargin)
         fn  = z_nuf(1:2:end);
         fv  = z_nuf(2:2:end);
         
-        r = PData3('x',x,'y',y_all,'fNames',fn,'fValues',fv,'myName',name,'fullFactorial',false);
+        r = PData3('x',x,'y',y_all,'fNames',fn,'fValues',fv,'myName',name,'fullFactorial',false,'raw',obj.raw);
     end
 
     t_totalGetTime  = toc(t_getStart);

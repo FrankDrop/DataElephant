@@ -2,6 +2,7 @@ classdef DataElephant < handle
     
     properties (Access = public)
         verbose
+        raw
     end
         
     properties (Access = private)
@@ -50,7 +51,6 @@ classdef DataElephant < handle
         load_old
         load_really_old
         savememory
-%         verbose
         fileverbose
         deepverbose
         funcverbose
@@ -61,6 +61,7 @@ classdef DataElephant < handle
         continueonerror
         addfinalstep
         submitToHost % submit If Restricted To Host
+        
         
         % Hash stuff
         hashlength

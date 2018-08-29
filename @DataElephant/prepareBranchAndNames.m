@@ -37,6 +37,11 @@ function [atStep, names_stripped, names_raw ] = prepareBranchAndNames(obj, name 
             end
 
             % Then we strip the raw names from all junk
+%             names_stripped{oo}      =
+%             regexprep(strip_special,'\([,a-zA-Z0-9:()''\s\[\]]*\)[.'']*','');
+%             ^ this also supports x(:,[1 2]), but that does not work with
+%             PData3 yet, because the y data and x data would not be the
+%             right sizes.
             names_stripped{oo}      = regexprep(strip_special,'\([,a-zA-Z0-9:()'']*\)[.'']*','');
         end
     end
