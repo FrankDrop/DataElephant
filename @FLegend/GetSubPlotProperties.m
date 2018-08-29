@@ -17,9 +17,13 @@ function z = GetSubPlotProperties(z)
         z.SubPlotOuterPosition(ll,:) = get(z.SubPlots(ll),'OuterPosition');
     end
     
-    % Check the orientation of the subplots    
-    z.NumSubPlotColumns        = length(unique(round(z.SubPlotOuterPosition(:,1),3)));
-    z.NumSubPlotRows     = length(unique(round(z.SubPlotOuterPosition(:,2),3)));    
+    % Check the orientation of the subplots 
+    if isempty(z.NumSubPlotColumns)
+        z.NumSubPlotColumns     = length(unique(round(z.SubPlotOuterPosition(:,1),3)));
+    end
+    if isempty(z.NumSubPlotRows)
+        z.NumSubPlotRows        = length(unique(round(z.SubPlotOuterPosition(:,2),3)));    
+    end
     
     % The Y axes on the right inputs
 
