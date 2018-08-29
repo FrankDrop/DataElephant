@@ -45,7 +45,22 @@ function [r,id_cum] = get(obj,name,varargin)
         % After all the preparation, we are ready to actually get some results:
     
         if nargout <= 1
-            [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
+            try
+                [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
+            catch e
+                if contains(e.stack(1).file,'@DataElephant')
+                    rethrow(e);
+                else
+                    error('Error using <a href="matlab:open %s">%s</a> (<a href="matlab:opentoline(''%s'',%i)">line %i</a>):\n%s',...
+                            e.stack(1).file,...
+                            e.stack(1).name,...
+                            e.stack(1).file,...
+                            e.stack(1).line,...
+                            e.stack(1).line,...
+                            e.message);
+                end
+            end
+            
             [x,y,fn,fv]         = obj.getY(r,names_stripped,names_raw,f,{},{},1);
             r                   = PData3('x',x,'y',y,'fNames',fn,'fValues',fv,'myName',name,'raw',obj.raw);
         end

@@ -93,7 +93,8 @@ function z = ParseInputs(varargin)
     p.addParameter('Type', 'plot');
 
 
-
+    p.addParameter('NumSubPlotColumns', [], @(x)isnumeric(x));
+    p.addParameter('NumSubPlotRows', [], @(x)isnumeric(x));
 
     p.addParameter('Title',[],@(x)ischar(x));
     p.addParameter('RightYLimits',[],@(x)(all(isnumeric(x)) || iscell(x)));
