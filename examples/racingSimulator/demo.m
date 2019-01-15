@@ -134,7 +134,7 @@ a.get('laptime',z,'raf_path','RAF/lap9.raf')
 a.verbose = 0;
 allLaps =  {'RAF/lap2.raf';'RAF/lap3.raf';'RAF/lap4.raf';...
             'RAF/lap5.raf';'RAF/lap6.raf';'RAF/lap7.raf';...
-            'RAF/lap8.raf';'RAF/lap9.raf';'RAF/lap10.raf'};
+            'RAF/lap8.raf';'RAF/lap9.raf'};
 a.get('laptime',z,'raf_path',allLaps,'f_filt',2).y
 
 %%
