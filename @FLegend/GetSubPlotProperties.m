@@ -18,11 +18,21 @@ function z = GetSubPlotProperties(z)
     end
     
     % Check the orientation of the subplots 
+    
+    % First we assume the subplots to be nicely aligned if they are on the
+    % same row or column
     if isempty(z.NumSubPlotColumns)
         z.NumSubPlotColumns     = length(unique(round(z.SubPlotOuterPosition(:,1),3)));
     end
     if isempty(z.NumSubPlotRows)
         z.NumSubPlotRows        = length(unique(round(z.SubPlotOuterPosition(:,2),3)));    
+    end
+    
+    % Certain plots, however, are not always nicely aligned, which leads us
+    % to believe that there are more rows times columns than plots.
+    if (z.NumSubPlotColumns * z.NumSubPlotRows ~= z.NumSubPlots)
+        error('I cannot automatically determine the number of columns and rows you would like to have. Please manually specify the fields ''NumSubPlotColumns'' and ''NumSubPlotRows''.');
+        
     end
     
     % The Y axes on the right inputs
