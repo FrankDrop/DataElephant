@@ -94,6 +94,8 @@ classdef DataElephant < handle
         % sql
         sql
         
+        full_debug
+        
         x_output
         getTime
     end

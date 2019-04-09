@@ -48,7 +48,8 @@ function [r,id_cum] = get(obj,name,varargin)
             try
                 [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
             catch e
-                if contains(e.stack(1).file,'@DataElephant')
+                
+                if contains(e.stack(1).file,'@DataElephant') || obj.full_debug
                     rethrow(e);
                 else
                     error('Error using <a href="matlab:open %s">%s</a> (<a href="matlab:opentoline(''%s'',%i)">line %i</a>):\n%s',...
