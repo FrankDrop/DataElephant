@@ -24,5 +24,6 @@ function [s] = config(obj, hostname)
             s.continueonerror       = 'yes';
             s.hostname              = []; 
             s.sql                   = 'no';
+            s.full_debug            = 'no';
     end
 end

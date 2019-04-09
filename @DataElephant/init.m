@@ -30,6 +30,7 @@ function obj = init(obj,varargin)
     p.addParameter('continueonerror',  s.continueonerror);
     p.addParameter('hostname',         s.hostname);
     p.addParameter('sql',              s.sql);
+    p.addParameter('full_debug',       s.full_debug);
     p.parse(varargin{:});
     z = p.Results;
     
@@ -90,6 +91,7 @@ function obj = init(obj,varargin)
     obj.addfinalstep    = strcmp(z.addfinalstep,        'yes');
     
     obj.sql             = strcmp(z.sql,                 'yes');
+    obj.full_debug      = strcmp(z.full_debug,          'yes');
     
     obj.hashlength          = 16;    
     
