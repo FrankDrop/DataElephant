@@ -1934,19 +1934,39 @@ classdef PData3 < matlab.mixin.Copyable
         end
     
         function nobj = diff(pobj,varargin)
-            nobj    = pobj.copy;
+%             nobj    = pobj.copy;
+%             
+%             numDiff = 1;            
+%             if nargin > 1
+%                 numDiff = varargin{1};
+%             end            
+%             nobj.y  = [zeros(numDiff,1); diff(nobj.y,varargin{:})];
+%             if numDiff > 1
+%                 nobj.myName     = sprintf('d^%i(%s)',numDiff,nobj.myName);
+%             else
+%                 nobj.myName     = sprintf('d(%s)',nobj.myName);
+%             end
+%             nobj.checkdimensions();
             
-            numDiff = 1;            
+            dt      = pobj.x(2)-pobj.x(1);
+            nobj    = pobj.copy;
+            numDiff = 1;
+            
             if nargin > 1
                 numDiff = varargin{1};
-            end            
-            nobj.y  = [zeros(numDiff,1); diff(nobj.y,varargin{:})];
-            if numDiff > 1
-                nobj.myName     = sprintf('d^%i(%s)',numDiff,nobj.myName);
-            else
-                nobj.myName     = sprintf('d(%s)',nobj.myName);
             end
+            
+            nobj.x  = pobj.x;
+            nobj.y  = nan(size(pobj.x));
+            theDiff = diff(pobj.y,varargin{:});
+            nobj.y(1:(end-numDiff))  = theDiff(:);
             nobj.checkdimensions();
+            
+            if numDiff > 1
+                nobj.myName     = sprintf('d^%i(%s)/dx^%i',numDiff,nobj.myName,numDiff);
+            else
+                nobj.myName     = sprintf('d(%s)/dx',nobj.myName);
+            end
         end
         
         function nobj = squeeze(pobj,varargin)
