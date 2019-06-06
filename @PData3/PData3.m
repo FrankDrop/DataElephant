@@ -1926,11 +1926,26 @@ classdef PData3 < matlab.mixin.Copyable
 %             end
 %         end
         
-        function nobj = find(pobj,varargin)
+        function nobj = find(pobj)
             nobj    = pobj.copy;
             nobj.y  = find(nobj.y);
             nobj.x  = nobj.x(nobj.y);
             nobj.checkdimensions();
+        end
+        
+        function nobj = flipud(pobj)
+            nobj    = pobj.copy;
+            nobj.y  = flipud(nobj.y);
+        end
+        
+        function nobj = fliplr(pobj)
+            nobj    = pobj.copy;
+            nobj.y  = fliplr(nobj.y);
+        end
+        
+        function nobj = flip(pobj,dim)
+            nobj    = pobj.copy;
+            nobj.y  = flip(nobj.y,dim);
         end
     
         function nobj = diff(pobj,varargin)
