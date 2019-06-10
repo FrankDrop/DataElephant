@@ -45,23 +45,27 @@ function [r,id_cum] = get(obj,name,varargin)
         % After all the preparation, we are ready to actually get some results:
     
         if nargout <= 1
-            try
+            if obj.full_debug
                 [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
-            catch e
-                if isempty(e.stack)
-                    rethrow(e);
-                end
-                
-                if contains(e.stack(1).file,'@DataElephant') || obj.full_debug
-                    rethrow(e);
-                else
-                    error('Error using <a href="matlab:open %s">%s</a> (<a href="matlab:opentoline(''%s'',%i)">line %i</a>):\n%s',...
-                            e.stack(1).file,...
-                            e.stack(1).name,...
-                            e.stack(1).file,...
-                            e.stack(1).line,...
-                            e.stack(1).line,...
-                            e.message);
+            else
+                try
+                    [r,~,id_cum,f,~,~]  = getAll(obj,names_stripped,z_cum,z_step,1,maxStep,maxStep,struct(),struct(),[],minStep,false);
+                catch e
+                    if isempty(e.stack)
+                        rethrow(e);
+                    end
+
+                    if contains(e.stack(1).file,'@DataElephant')
+                        rethrow(e);
+                    else
+                        error('Error using <a href="matlab:open %s">%s</a> (<a href="matlab:opentoline(''%s'',%i)">line %i</a>):\n%s',...
+                                e.stack(1).file,...
+                                e.stack(1).name,...
+                                e.stack(1).file,...
+                                e.stack(1).line,...
+                                e.stack(1).line,...
+                                e.message);
+                    end
                 end
             end
             
