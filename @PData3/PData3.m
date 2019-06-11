@@ -553,6 +553,11 @@ classdef PData3 < matlab.mixin.Copyable
             nobj    = nobj.genericmath('atan',@(x,d)atan(x),[],[],false);
         end
         
+        function nobj = atan2(pobj,dx)
+            nobj    = pobj.copy;
+            nobj    = nobj.genericmath('atan2',@(x,d)atan2(x,dx),[],[],false);
+        end
+        
         function nobj = atand(pobj)
             nobj    = pobj.copy;
             nobj    = nobj.genericmath('atand',@(x,d)atand(x),[],[],false);
