@@ -40,9 +40,17 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
                 end
             else
                 if iscell(r{1}.(names_stripped{2}))
-                    y = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);                    
+                    exmpl   = r{1}.(names_stripped{2}); %#ok<NASGU>
+                    sz      = eval(strrep(names_raw{2},names_stripped{2},'exmpl'));
+                    
+                    y = cell([length(f.this.value) size(sz)]);
+%                     y = cell([length(f.this.value) size(r{1}.(names_stripped{2}))]);
                 else
-                    y = zeros([length(f.this.value) size(r{1}.(names_stripped{2}))]);
+                    exmpl   = r{1}.(names_stripped{2}); %#ok<NASGU>
+                    sz      = eval(strrep(names_raw{2},names_stripped{2},'exmpl'));
+                    
+                    y = zeros([length(f.this.value) size(sz)]);
+%                     y = zeros([length(f.this.value) size(r{1}.(names_stripped{2}))]);
                 end
 
                 if strcmp(names_raw{1},names_raw{2})
@@ -58,10 +66,11 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
                         end
                     else
                         for oo=1:length(f.this.value)
-                            y           = r{oo}.(names_stripped{2}); %#ok<NASGU>
-                            y           = eval(strrep(names_raw{2},names_stripped{2},'y'));
-                            y(oo,:)     = y(:);
+                            y_          = r{oo}.(names_stripped{2}); %#ok<NASGU>
+                            y_          = eval(strrep(names_raw{2},names_stripped{2},'y_'));
+                            y(oo,:)     = y_(:);
                         end
+%                         y = eval(strrep(names_raw{2},names_stripped{2},'y'));
                     end
                 catch e
                     if strcmp(e.identifier,'MATLAB:subsassigndimmismatch')

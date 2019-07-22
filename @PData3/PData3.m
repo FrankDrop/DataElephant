@@ -31,6 +31,21 @@ classdef PData3 < matlab.mixin.Copyable
             xrms = sqrt(mean(x .* conj(x),dim));
         end
         
+        function cl = cellOptions(d)
+            if isstruct(d)
+                fn = fieldnames(d);
+                cl = cell(2*length(fn),1);
+                for ii=1:length(fn)
+                    cl{1+(ii-1)*2} = fn{ii};
+                    cl{ii*2} = d.(fn{ii});
+                end
+            elseif iscell(d)
+                cl = d;
+            else
+                error('cannot convert this to an options cell array');
+            end
+        end
+        
         function isls = islinespec(x)
             isls    = false;
 
@@ -134,6 +149,7 @@ classdef PData3 < matlab.mixin.Copyable
             addParameter(p,'magnitude',1,@(x)islogical(x));
             addParameter(p,'phase',1,@(x)islogical(x));
             addParameter(p,'bins',[],@(x)isnumeric(x));
+            addParameter(p,'normalize',false,@(x)islogical(x));
             parse(p,varargin{:});
             
             z       = p.Results;
@@ -684,7 +700,7 @@ classdef PData3 < matlab.mixin.Copyable
             if nargin == 1
                 dim = 1;
             end
-            nobj    = nobj.genericmath('var',@(x,d)var(x,1,d,'omitnan'),[],dim,true,varargin{:});
+            nobj    = nobj.genericmath('nanvar',@(x,d)var(x,1,d,'omitnan'),[],dim,true,varargin{:});
         end
 
         function nobj = rms(pobj,dim,varargin)
@@ -702,7 +718,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nansum(pobj,dim,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmath('sum',@(x,d)nansum(x,d),[],dim,false,varargin{:});
+            nobj    = nobj.genericmath('nansum',@(x,d)sum(x,d,'omitnan'),[],dim,false,varargin{:});
         end
 
         function nobj = mean(pobj,dim,varargin)
@@ -711,7 +727,7 @@ classdef PData3 < matlab.mixin.Copyable
         end
 
         function nobj = nanmean(obj,dim,varargin)
-            nobj = obj.genericmath('mean',@(x,d)nanmean(x,d),@(x,d)nanstd(x,0,d),dim,false,varargin{:});
+            nobj = obj.genericmath('nanmean',@(x,d)mean(x,d,'omitnan'),@(x,d)std(x,0,d,'omitnan'),dim,false,varargin{:});
         end
 
 %% Math functions over a certain dimension specified by name
@@ -758,7 +774,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nanmaxover(pobj,over,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmathover('max',@(x,d)nanmax(x,[],d),[],over,true,varargin{:});
+            nobj    = nobj.genericmathover('max',@(x,d)max(x,[],d,'omitnan'),[],over,true,varargin{:});
         end
         
         function nobj = minover(pobj,over,varargin)
@@ -778,7 +794,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nanminover(pobj,over,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmathover('min',@nanmin,[],over,true,varargin{:});
+            nobj    = nobj.genericmathover('min',@(x,d)min(x,[],d,'omitnan'),[],over,true,varargin{:});
         end
 
         function nobj = sumover(pobj,over,varargin)
@@ -788,7 +804,7 @@ classdef PData3 < matlab.mixin.Copyable
 
         function nobj = nansumover(pobj,over,varargin)
             nobj    = pobj.copy;
-            nobj    = nobj.genericmathover('sum',@nansum,[],over,true,varargin{:});
+            nobj    = nobj.genericmathover('sum',@(x,d)sum(x,d,'omitnan'),[],over,true,varargin{:});
         end
 
         function nobj = mo(pobj,over,varargin)
@@ -805,7 +821,7 @@ classdef PData3 < matlab.mixin.Copyable
         end
 
         function nobj = nanmeanover(obj,over,varargin)
-            nobj = obj.genericmathover('mean',@nanmean,@(x,d)nanstd(x,1,d),over,true,varargin{:});
+            nobj = obj.genericmathover('mean',@nanmean,@(x,d)std(x,1,d,'omitnan'),over,true,varargin{:});
         end
         
         function nobj = cumsumover(pobj,over,varargin)
@@ -1617,34 +1633,69 @@ classdef PData3 < matlab.mixin.Copyable
             set(gca,'YTick',-9000:90:9000)
         end
         
-        function h = hline(hx,obj,varargin)
-            [z,unm]     = obj.parsePlotInput(varargin{:});
-            
+        function nobj = hline(obj,hx)
             if numel(obj.y) ~= 1
                 error('I can only plot a horizontal line at one y coordinate.')
             end
             
-            h=obj.plotter(@plot,{hx,obj.y*ones(size(hx))},z.LineSpec,unm);
-            
-            if nargout == 0
-                clear h
-            end
+            nobj = PData3('x',hx,'y',obj.y*ones(size(hx)));
         end
         
-        function h = vlines(obj,varargin)
-            [z,unm]     = obj.parsePlotInput(varargin{:});
-            
-            for oo=1:numel(obj.x)
-                if isempty(z.LineSpec)
-                    h=obj.plotter(@plot,[obj.x(oo) obj.x(oo)],[-1e6 1e6],unm);
-                else
-                    h=obj.plotter(@plot,[obj.x(oo) obj.x(oo)],[-1e6 1e6],z.LineSpec,unm);
-                end 
+        function nobj = vline(obj,hx)
+            if numel(obj.y) ~= 1
+                error('I can only plot a horizontal line at one y coordinate.')
             end
             
-            if nargout == 0
-                clear h
+            nobj = PData3('x',obj.y*ones(size(hx)),'y',hx);
+        end
+%         
+%         function h = vlines(obj,varargin)
+%             [z,unm]     = obj.parsePlotInput(varargin{:});
+%             
+%             for oo=1:numel(obj.x)
+%                 if isempty(z.LineSpec)
+%                     h=obj.plotter(@plot,[obj.x(oo) obj.x(oo)],[-1e6 1e6],unm);
+%                 else
+%                     h=obj.plotter(@plot,[obj.x(oo) obj.x(oo)],[-1e6 1e6],z.LineSpec,unm);
+%                 end 
+%             end
+%             
+%             if nargout == 0
+%                 clear h
+%             end
+%         end
+        
+        function nobj = hist(obj,varargin)            
+            [z,~]     = obj.parsePlotInput(varargin{:});
+
+            tY   = squeeze(obj.y);
+            
+            if ~ismatrix(tY)
+                error('More than two dimensions exist, I cannot produce a histogram from this.');
             end
+            
+            if strcmp(obj.xAxis,'x')
+                assert(length(obj.fNames) <= 1,'This is not possible.');
+                tY  = tY.';
+            else
+                assert(length(obj.fNames) == 2,'This is not possible.');
+                xDim    = find(strcmp(obj.fNames,obj.xAxis));
+                if xDim == 1
+                    tY = tY.';
+                end
+            end
+            
+            if isempty(z.bins)
+                error('You need to specify option ''bins''.');
+            end
+            
+            [tCounts,tCenters] = hist(tY,z.bins);
+            
+            if ~isempty(z.normalize) && z.normalize
+                tCounts = tCounts ./ sum(tCounts);
+            end
+            
+            nobj = PData3('x',tCenters,'y',tCounts);
         end
         
         function h = histbar(obj,varargin)
@@ -1657,7 +1708,7 @@ classdef PData3 < matlab.mixin.Copyable
             end
             
             if strcmp(obj.xAxis,'x')
-                assert(length(obj.fNames) == 1,'This is not possible.');
+                assert(length(obj.fNames) <= 1,'This is not possible.');
                 tY  = tY.';
             else
                 assert(length(obj.fNames) == 2,'This is not possible.');
@@ -1665,6 +1716,10 @@ classdef PData3 < matlab.mixin.Copyable
                 if xDim == 1
                     tY = tY.';
                 end
+            end
+            
+            if isempty(z.bins)
+                error('You need to specify option ''bins''.');
             end
             
             [tCounts,tCenters] = hist(tY,z.bins);
@@ -1685,12 +1740,24 @@ classdef PData3 < matlab.mixin.Copyable
                 end
             else
                 if ~isempty(z.LineSpec)
-                    h = bar(tCenters,tCounts,z.LineSpec,unm);
+                    if isempty(unm)
+                        h = bar(tCenters,tCounts,z.LineSpec);
+                    else
+                        opt = obj.cellOptions(unm);
+                        h = bar(tCenters,tCounts,z.LineSpec,opt{:});
+                    end
                 else
-                    h = bar(tCenters,tCounts,unm);
+                    if isempty(unm)
+                        h = bar(tCenters,tCounts);
+                    else
+                        opt = obj.cellOptions(unm);
+                        h = bar(tCenters,tCounts,opt{:});
+                    end
                 end
             end
         end
+        
+        
 
         function [x_this,y_this,z_this] = prepare3Dplot(obj,z)
             if obj.fullFactorial            
