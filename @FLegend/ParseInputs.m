@@ -48,6 +48,7 @@ function z = ParseInputs(varargin)
     % Legend options
     p.addParameter('Box','on',@(x)isYesNoString(x));
     p.addParameter('Orientation','Vertical',@(x)isOptionsString(x,{'Vertical','Horizontal'}));
+    p.addParameter('Direction','Regular',@(x)isOptionsString(x,{'Regular','Reversed'}));
     p.addParameter('FontSize', 12,@(x)isnumerical(x));
     p.addParameter('FontName', 'CMR6',@(x)ischar(x));
     p.addParameter('TextColor',[0 0 0],@(x)(isnumeric(x) && numel(x) == 3));
