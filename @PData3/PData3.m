@@ -982,32 +982,19 @@ classdef PData3 < matlab.mixin.Copyable
             % Check whether the x and y data are of the same dimensions. If
             % not, it probably means the y data was averaged over x and the
             % new x data was not correctly set yet.
-
-%             x   = data{1};
-%             y   = data{2};
-%             if length(data) > 2
-%                 Z = data{3};
-%             end
-            
-%             if ndims(x) ~= ndims(y)
-%                 error('The x and y data do not belong together.')
-%             end
-
-%             if all(iscell(x))
-%                 xlbl    = x;
-%                 x       = 1:length(x);
-%             end
-            
+           
             [z,unm] = obj.parseGrayScalePlotInput(varargin{:});
+            
+            opt = obj.cellOptions(unm);
             
             if isempty(z.LineSpec)
                 if ~isempty(fieldnames(unm))
                     if isfield(unm,'DisplayName')
-                        h = fhandle(z.Axis,data{:},unm);
+                        h = fhandle(z.Axis,data{:},opt{:});
                     elseif ~isempty(z.myName)
-                        h = fhandle(z.Axis,data{:},unm,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},opt{:},'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,data{:},unm);
+                        h = fhandle(z.Axis,data{:},opt{:});
                     end
                 else
                     if ~isempty(z.myName)
@@ -1019,11 +1006,11 @@ classdef PData3 < matlab.mixin.Copyable
             else
                 if ~isempty(fieldnames(unm))
                     if isfield(unm,'DisplayName')
-                        h = fhandle(z.Axis,data{:},z.LineSpec,unm);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,opt{:});
                     elseif ~isempty(z.myName)
-                        h = fhandle(z.Axis,data{:},z.LineSpec,unm,'DisplayName',z.myName);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,opt{:},'DisplayName',z.myName);
                     else
-                        h = fhandle(z.Axis,data{:},z.LineSpec,unm);
+                        h = fhandle(z.Axis,data{:},z.LineSpec,opt{:});
                     end
                 else
                     if ~isempty(z.myName)
@@ -1074,7 +1061,7 @@ classdef PData3 < matlab.mixin.Copyable
             end
             
             drawnow;            
-            dc = datacursormode(gcf);
+%             dc = datacursormode(gcf);
 %             set(dc,'UpdateFcn',@FCursor)
 
         end
@@ -1209,6 +1196,18 @@ classdef PData3 < matlab.mixin.Copyable
                 h = obj.plotter(@plot,{getXData(obj),obj.y},varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
             else
                 h = obj.plotter(@plot,{getXData(obj),obj.y},varargin{:});
+            end
+            
+            if nargout == 0
+                clear h
+            end
+        end
+        
+        function h = stairs(obj,varargin)
+            if ~isempty(obj.myName)
+                h = obj.plotter(@stairs,{getXData(obj),obj.y},varargin{:},'myName',obj.subscriptUnderscore(obj.myName));
+            else
+                h = obj.plotter(@stairs,{getXData(obj),obj.y},varargin{:});
             end
             
             if nargout == 0

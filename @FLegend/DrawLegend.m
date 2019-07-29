@@ -100,6 +100,8 @@ function z = DrawLegend(z)
             iWillDraw   = 'Line';
         elseif isa(z.PlotHandle(oo_order),'matlab.graphics.primitive.Rectangle')
             iWillDraw   = 'Rectangle';
+        elseif isa(z.PlotHandle(oo_order),'matlab.graphics.chart.primitive.Stair')
+            iWillDraw   = 'Line';
         else
             error('You need to add the %s class.',class(z.PlotHandle(oo_order)))
         end
