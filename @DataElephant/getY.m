@@ -6,8 +6,17 @@ function [x,y,fn,fv] = getY(obj,r,names_stripped,names_raw,f,fn,fv,ll)
         y   = r.(names_stripped{2});
 
         if ~(strcmp(names_raw{1},names_stripped{1}) && strcmp(names_raw{2},names_stripped{2}))
-            x   = eval(strrep(names_raw{1},names_stripped{1},'x'));
-            y   = eval(strrep(names_raw{2},names_stripped{2},'y'));
+            try
+                x   = eval(strrep(names_raw{1},names_stripped{1},'x'));
+            catch
+                error('Size of x = [%s]',sprintf('%i, ',size(x)));
+            end
+            
+            try
+                y   = eval(strrep(names_raw{2},names_stripped{2},'y'));
+            catch
+                error('Size of y = [%s]',sprintf('%i, ',size(y)));
+            end
         end
     else
         fn{ll}  = f.this.name;
