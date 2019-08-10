@@ -39,7 +39,7 @@ function z = ParseInputs(varargin)
     p.addParameter('Columns', [], @(x)isnumeric(x));
     p.addParameter('MarkerWidth', 0.3, @(x)isnumeric(x));
     p.addParameter('TextWidth', 1, @(x)isnumeric(x));
-    p.addParameter('TextHeight', 0.25, @(x)isnumeric(x));
+    p.addParameter('TextHeight', 0.35, @(x)isnumeric(x));
     p.addParameter('Location', 'SouthWest',@(x)isOptionsString(x,{'North','NorthEast','East','SouthEast','South','SouthWest','West','NorthWest'}));
 
     % Paper options
