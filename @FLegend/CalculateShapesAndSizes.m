@@ -31,14 +31,20 @@ function z = CalculateShapesAndSizes(z)
         z.Rows      = z.NumLabels;
         z.Columns   = 1;
     else
-        if z.NumLabels < z.Rows
-            z.Rows = z.NumLabels;
-        end
-        if strcmp(z.Orientation,'horizontal')
-            z.Columns   = ceil(z.NumLabels / z.Rows);        
-            z.Rows      = ceil(z.NumLabels / z.Columns);
+        z.AutoReduceColumnsAndRows
+        if strcmp(z.AutoReduceColumnsAndRows,'yes')
+            if z.NumLabels < z.Rows
+                z.Rows = z.NumLabels;
+            end
+            if strcmp(z.Orientation,'horizontal')
+                z.Columns   = ceil(z.NumLabels / z.Rows);        
+                z.Rows      = ceil(z.NumLabels / z.Columns);
+            else
+                z.Columns = ceil(z.NumLabels / z.Rows);
+            end
         else
-            z.Columns = ceil(z.NumLabels / z.Rows);
+            disp('boo');
+            % maintain the number of columns and rows as specified by user.
         end
     end
 

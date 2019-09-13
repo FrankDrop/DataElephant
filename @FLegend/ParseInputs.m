@@ -90,6 +90,7 @@ function z = ParseInputs(varargin)
     p.addParameter('LegendHorizontalShift', 0, @(x)isnumeric(x));
     p.addParameter('LegendVerticalShift', 0, @(x)isnumeric(x));
     p.addParameter('SubPlotSpacing', 0.25, @(x)isnumeric(x));
+    p.addParameter('AutoReduceColumnsAndRows','yes',@(x)isYesNoString(x));
     p.addParameter('CenterTitleOverEntireFigure','no',@(x)isYesNoString(x));
     p.addParameter('Type', 'plot');
 
