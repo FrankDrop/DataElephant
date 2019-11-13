@@ -26,7 +26,7 @@ function z = StretchSubFigures(z)
             z.SubPlots(pp).XLabel.Position = convertPositions(z,[(z.SubPlotWidth(xx)-(z.YLabelWidth(xx)+z.RightYLabelWidth(xx)))/2 ...
                                                                  -z.XLabelHeight(yy)+z.XLabelVerticalShift ...
                                                                  0]); % + z.RightMargin
-            z.SubPlots(pp).YLabel.Position = convertPositions(z,[-z.YLabelWidth(xx) (z.SubPlotHeight(yy)-z.XLabelHeight(yy))/2 0]);
+            z.SubPlots(pp).YLabel.Position = convertPositions(z,[-z.YLabelWidth(xx)+z.YLabelHorizontalShift (z.SubPlotHeight(yy)-z.XLabelHeight(yy))/2 0]);
 
             pos(1)  = z.PaddingLeft + sum(z.SubPlotWidth(1:(xx-1)))     + sum(z.SubPlotHorizontalSpacing(1:(xx-1)))     + z.YLabelWidth(xx);
             pos(2)  = z.PaddingBottom + sum(z.SubPlotHeight(1:(yy-1)))    + sum(z.SubPlotVerticalSpacing(1:(yy-1)))       + z.XLabelHeight(yy);

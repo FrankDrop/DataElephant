@@ -31,8 +31,7 @@ function z = CalculateShapesAndSizes(z)
         z.Rows      = z.NumLabels;
         z.Columns   = 1;
     else
-        z.AutoReduceColumnsAndRows
-        if strcmp(z.AutoReduceColumnsAndRows,'yes')
+        if strcmp(z.AutoDeduceColumnsAndRows,'yes')
             if z.NumLabels < z.Rows
                 z.Rows = z.NumLabels;
             end
