@@ -80,7 +80,7 @@ function z = ParseInputs(varargin)
     p.addParameter('YLabelHorizontalShift', 0.0, @(x)isnumeric(x));
     p.addParameter('RightYLabelWidth', 0.6, @(x)isnumeric(x));
     
-    p.addParameter('Padding', [0.08 0.05 0 0], @(x)isnumeric(x));
+    p.addParameter('Padding', [0.1 0.2 0.0 0.0], @(x)isnumeric(x));
     p.addParameter('PaddingTop', [], @(x)isnumeric(x));
     p.addParameter('PaddingRight', [], @(x)isnumeric(x));
     p.addParameter('PaddingBottom', [], @(x)isnumeric(x));
