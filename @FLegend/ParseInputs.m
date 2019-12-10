@@ -76,7 +76,9 @@ function z = ParseInputs(varargin)
     p.addParameter('XLabelHeight', 0.75, @(x)isnumeric(x)); % Percentage
     p.addParameter('YLabelWidth', 0.75, @(x)isnumeric(x));
     p.addParameter('XLabelVerticalShift', 0.0, @(x)isnumeric(x));
+    p.addParameter('XLabelHorizontalShift', 0.0, @(x)isnumeric(x));
     p.addParameter('YLabelHorizontalShift', 0.0, @(x)isnumeric(x));
+    p.addParameter('YLabelVerticalShift', 0.0, @(x)isnumeric(x));
     p.addParameter('RightYLabelWidth', 0.6, @(x)isnumeric(x));
     
     p.addParameter('Padding', [0.08 0.05 0 0], @(x)isnumeric(x));
@@ -159,7 +161,11 @@ function z = ParseInputs(varargin)
         
         
         z.RightYLabelWidth          = z.RightYLabelWidth            * z.ImageScale;
+        
         z.XLabelVerticalShift       = z.XLabelVerticalShift         * z.ImageScale;
+        z.YLabelVerticalShift       = z.YLabelVerticalShift         * z.ImageScale;
+        z.XLabelHorizontalShift     = z.XLabelHorizontalShift         * z.ImageScale;
+        z.YLabelHorizontalShift     = z.YLabelHorizontalShift         * z.ImageScale;
     end
     
     z.SubPlotHorizontalSpacing  = z.SubPlotSpacing;

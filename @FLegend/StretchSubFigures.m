@@ -23,16 +23,18 @@ function z = StretchSubFigures(z)
                 z.SubPlots(pp).YLabel.HorizontalAlignment    = 'center';       
             end
             
-            z.SubPlots(pp).XLabel.Position = convertPositions(z,[(z.SubPlotWidth(xx)-(z.YLabelWidth(xx)+z.RightYLabelWidth(xx)))/2 ...
+            z.SubPlots(pp).XLabel.Position = convertPositions(z,[(z.SubPlotWidth(xx)-(z.YLabelWidth(xx)+z.RightYLabelWidth(xx)))/2+z.XLabelHorizontalShift ...
                                                                  -z.XLabelHeight(yy)+z.XLabelVerticalShift ...
-                                                                 0]); % + z.RightMargin
-            z.SubPlots(pp).YLabel.Position = convertPositions(z,[-z.YLabelWidth(xx)+z.YLabelHorizontalShift (z.SubPlotHeight(yy)-z.XLabelHeight(yy))/2 0]);
+                                                                 0]);
+            z.SubPlots(pp).YLabel.Position = convertPositions(z,[-z.YLabelWidth(xx)+z.YLabelHorizontalShift ...
+                                                                 (z.SubPlotHeight(yy)-z.XLabelHeight(yy))/2+z.YLabelVerticalShift ...
+                                                                 0]);
 
             pos(1)  = z.PaddingLeft + sum(z.SubPlotWidth(1:(xx-1)))     + sum(z.SubPlotHorizontalSpacing(1:(xx-1)))     + z.YLabelWidth(xx);
             pos(2)  = z.PaddingBottom + sum(z.SubPlotHeight(1:(yy-1)))    + sum(z.SubPlotVerticalSpacing(1:(yy-1)))       + z.XLabelHeight(yy);
             
-            pos(3)  = z.SubPlotWidth(xx) - (z.YLabelWidth(xx)  + z.RightYLabelWidth(xx)); %+ z.RightMargin(xx)
-            pos(4)  = z.SubPlotHeight(yy) - (z.XLabelHeight(yy)  + t_titleheight); %+ z.TopMargin(yy)
+            pos(3)  = z.SubPlotWidth(xx) - (z.YLabelWidth(xx)  + z.RightYLabelWidth(xx));
+            pos(4)  = z.SubPlotHeight(yy) - (z.XLabelHeight(yy)  + t_titleheight);
             
             
             z.SubPlots(pp).Position = convertPositions(z,pos);
